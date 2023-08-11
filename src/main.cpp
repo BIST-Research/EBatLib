@@ -6,12 +6,12 @@
 #include <ml_tcc.h>
 #include <ml_ac.h>
 
-#define SPI_BUFFER_LEN 64
+#define SPI_BUFFER_LEN 8
 
 static DmacDescriptor base_descriptor[3] __attribute__((aligned(16)));
 static volatile DmacDescriptor wb_descriptor[3] __attribute__((aligned(16)));
 
-volatile uint8_t spi_rx_buffer[SPI_BUFFER_LEN];
+volatile uint32_t spi_rx_buffer[SPI_BUFFER_LEN];
 
 const uint32_t spi_rx_dmac_channel_settings = 
 (
@@ -23,7 +23,7 @@ const uint16_t spi_rx_dmac_descriptor_settings =
 
 );
 
-volatile uint8_t spi_tx_buffer[SPI_BUFFER_LEN];
+volatile uint32_t spi_tx_buffer[SPI_BUFFER_LEN];
 
 const uint32_t spi_tx_dmac_channel_settings = 
 (

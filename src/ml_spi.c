@@ -6,6 +6,14 @@
 #include <ml_spi.h>
 #include <ml_clocks.h>
 
+/*
+ * Notes:
+ * - CPOL: SCK or SCK + 180 deg
+ * - transmission starts with falling edge or SS
+ * 
+ */
+
+
 inline void spi_enable(Sercom *coms)
 {
     coms->SPI.CTRLA.bit.ENABLE = 0x01;
@@ -33,7 +41,30 @@ inline void spi_swrst(Sercom *coms)
     }
 }
 
-void spi_slave_init(Sercom *coms, uint8_t gclk_id)
+inline void spi_rxen(Sercom *coms)
+{
+    coms->SPI.CTRLB.bit.RXEN = 0x01;
+    while(coms->SPI.SYNCBUSY.bit.CTRLB != 0U)
+    {
+        /* Wait for syncronization */
+    }
+}
+
+inline void spi_mssen(Sercom *coms)
+{
+    coms->SPI.CTRLB.bit.MSSEN = 0x01;
+    while(coms->SPI.SYNCBUSY.bit.CTRLB != 0U)
+    {
+        /* Wait for syncronization */
+    }
+}
+
+
+
+
+
+
+void spi_init(Sercom *coms, const uint8_t gclk_id, const ml_spi_opmode opmode)
 {
     ML_SET_GCLK0_PCHCTRL(gclk_id);
     spi_disable(coms);
@@ -41,10 +72,11 @@ void spi_slave_init(Sercom *coms, uint8_t gclk_id)
 
     coms->SPI.CTRLA.reg = 
     (
-        SERCOM_SPI_CTRLA_MODE(ML_SERCOM_SPI_MODE_SLAVE) |
+        SERCOM_SPI_CTRLA_MODE(opmode ? ML_SERCOM_SPI_MODE_MASTER : ML_SERCOM_SPI_MODE_SLAVE) |
         SERCOM_SPI_CTRLA_DIPO(ML_SERCOM_SPI_DIPO_PAD3) |
         SERCOM_SPI_CTRLA_FORM(ML_SERCOM_SPI_FRAME_SPI) |
         SERCOM_SPI_CTRLA_DOPO(ML_SERCOM_SPI_DOPO_DO0) |
+        ML_SERCOM_SPI_MODE0 |
         SERCOM_SPI_CTRLA_IBON
     );
 

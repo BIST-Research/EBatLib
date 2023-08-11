@@ -16,6 +16,15 @@ extern "C"
 #define ML_SERCOM_SPI_FRAME_SPI             0x00
 #define ML_SERCOM_SPI_FRAME_SPI_WITH_ADDR   0x02
 
+// CPOL = 0, CPHA = 0
+#define ML_SERCOM_SPI_MODE0                 (0x00 << SERCOM_SPI_CTRLA_CPHA_Pos)
+// CPOL = 1, CPHA = 0
+#define ML_SERCOM_SPI_MODE2                 (0x02 << SERCOM_SPI_CTRLA_CPHA_Pos)
+// CPOL = 0, CPHA = 1
+#define ML_SERCOM_SPI_MODE1                 (0x01 << SERCOM_SPI_CTRLA_CPHA_Pos)
+// CPOL = 1, CPHA = 1
+#define ML_SERCOM_SPI_MODE3                 (0x03 << SERCOM_SPI_CTRLA_CPHA_Pos)
+
 #define ML_SERCOM_SPI_DIPO_PAD0             0x00
 #define ML_SERCOM_SPI_DIPO_PAD1             0x01
 #define ML_SERCOM_SPI_DIPO_PAD2             0x02
@@ -34,12 +43,13 @@ extern "C"
 #define ML_SERCOM_SPI_CHSIZE_8BIT           0x00
 #define ML_SERCOM_SPI_CHSIZE_9BIT           0x01
 
+typedef enum {MASTER = 0x03, SLAVE = 0x00} ml_spi_opmode;
 
 inline void spi_enable(Sercom *coms);
 inline void spi_disable(Sercom *coms);
 inline void spi_swrst(Sercom *coms);
 
-void spi_slave_init(Sercom *coms, uint8_t gclk_id);
+void spi_init(Sercom *coms, const uint8_t gclk_id, const ml_spi_opmode opmode);
 void clear_buffer(void);
 uint8_t get_byte(void);
 
