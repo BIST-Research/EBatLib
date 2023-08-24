@@ -33,8 +33,9 @@ void MCLK_init(void);
 #define ML_SET_GCLK1_PCHCTRL(id)(GCLK->PCHCTRL[id].reg = ML_GCLK1_PCHCTRL)
 #define ML_SET_GCLK0_PCHCTRL(id)(GCLK->PCHCTRL[id].reg = ML_GCLK0_PCHCTRL)
 
-
 void GCLK_init(void);
+
+void OSCULP32K_init(void);
 
 #ifdef __cplusplus
 }
