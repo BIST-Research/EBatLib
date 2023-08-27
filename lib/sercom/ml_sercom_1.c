@@ -22,6 +22,7 @@ const ml_pin_settings ml_sercom1_spi_pad0_pin =
     PORT_GRP_A, 0, PF_D, PP_EVEN, OUTPUT_PULL_DOWN, DRIVE_OFF
 };
 
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                        PAD1
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

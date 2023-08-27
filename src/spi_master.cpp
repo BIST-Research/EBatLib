@@ -11,6 +11,7 @@
 #include <ml_tc_common.h>
 #include <ml_sercom_1.h>
 #include <stdbool.h>
+#include <ml_dac0.h>
 
 #ifdef BUILD_SERCOM_MASTER
 
@@ -237,11 +238,6 @@ void loop(void)
             }
             break;
         }
-    }
-
-    if(dmac_rx_intflag)
-    {
-        Serial.println("RXC");
     }
 
 }

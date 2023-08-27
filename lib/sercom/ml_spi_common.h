@@ -105,21 +105,7 @@ typedef enum _ml_spi_dord_t
     DORD_LSBFIRST = ML_SERCOM_SPI_DORD_LSBFIRST
 } ml_spi_dord_t;
 
-typedef struct _ml_spi_dmac_s
-{
-    const ml_dmac_chnum_t ex_chnum;
-    const uint32_t chan_settings;
-    uint8_t chan_prilvl;
 
-    uint16_t ex_len;
-    volatile uint32_t const * ex_ptr;
-    const uint16_t descriptor_settings;
-    uint8_t intmsk;
-
-    const _Bool nvic;
-    const IRQn_Type irqn;
-    uint32_t irqn_prilvl;
-} ml_spi_dmac_s;
 
 typedef struct _ml_spi_s
 {
@@ -129,8 +115,8 @@ typedef struct _ml_spi_s
     ml_tc_cc_t ss_timer_idx;
     Tc *ss_timer_inst;
     
-    ml_spi_dmac_s rx_dmac_s;
-    ml_spi_dmac_s tx_dmac_s;
+    ml_dmac_s rx_dmac_s;
+    ml_dmac_s tx_dmac_s;
 
 } ml_spi_s;
 
@@ -154,17 +140,18 @@ uint8_t spi_read8b(Sercom *coms, uint8_t val);
 
 void spi_dmac_tx_init
 (
-    ml_spi_dmac_s *dmac_s,
+    ml_dmac_s *dmac_s,
     Sercom *coms_inst,
     DmacDescriptor *cpy
 );
 
 void spi_dmac_rx_init
 (
-    ml_spi_dmac_s *dmac_s,
+    ml_dmac_s *dmac_s,
     Sercom *coms_inst,
     DmacDescriptor *cpy
 );
+
 
 #define ML_SERCOM_SPI_INTSET_DRE(instance)          (instance->SPI.INTENSET.bit.DRE = 0x01)
 #define ML_SERCOM_SPI_INTSET_TXC(instance)          (instance->SPI.INTENSET.bit.TXC = 0x01)

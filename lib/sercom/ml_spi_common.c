@@ -79,7 +79,7 @@ uint8_t spi_read8b(Sercom *coms, uint8_t data)
 
 void spi_dmac_tx_init
 (
-    ml_spi_dmac_s *dmac_s,
+    ml_dmac_s *dmac_s,
     Sercom *coms_inst,
     DmacDescriptor *cpy
 )
@@ -116,7 +116,7 @@ void spi_dmac_tx_init
 
 void spi_dmac_rx_init
 (
-    ml_spi_dmac_s *dmac_s,
+    ml_dmac_s *dmac_s,
     Sercom *coms_inst,
     DmacDescriptor *cpy
 )

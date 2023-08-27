@@ -29,6 +29,22 @@ typedef enum _ml_dmac_chprilvl_t
     PRILVL0, PRILVL1, PRILVL2, PRILVL3
 } ml_dmac_chprilvl_t;
 
+typedef struct _ml_dmac_s
+{
+    const ml_dmac_chnum_t ex_chnum;
+    const uint32_t chan_settings;
+    uint8_t chan_prilvl;
+
+    uint16_t ex_len;
+    volatile uint32_t const * ex_ptr;
+    const uint16_t descriptor_settings;
+    uint8_t intmsk;
+
+    const _Bool nvic;
+    const IRQn_Type irqn;
+    uint32_t irqn_prilvl;
+} ml_dmac_s;
+
 #define ML_DMAC_ENABLE()                            (DMAC->CTRL.reg |= DMAC_CTRL_DMAENABLE)
 #define ML_DMAC_DISABLE()                           (DMAC->CTRL.reg &= ~DMAC_CTRL_DMAENABLE)
 #define ML_DMAC_SWRST()                             (DMAC->CTRL.reg |= DMAC_CTRL_SWRST)
