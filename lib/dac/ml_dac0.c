@@ -22,7 +22,7 @@ void DAC0_init(void)
     DAC->DACCTRL[0].bit.FEXT = false;
     DAC->DACCTRL[0].bit.LEFTADJ = 0x00;
     DAC->DACCTRL[0].bit.CCTRL = CC12MEG;
-    
+
 }
 
 #define _DAC0_CHKEN()         (DAC->CTRLA.bit.ENABLE)
@@ -181,3 +181,33 @@ uint16_t DAC0_get_interpol_result(void)
 {
     return (uint16_t)DAC->RESULT[0].reg;
 }
+
+#define DAC0_DMAC_INTMSK        (DMAC_CHINTENSET_TCMPL | DMAC_CHINTENSET_TERR)
+
+const uint32_t dac0_dmac_channel_settings = 
+(
+    DMAC_CHCTRLA_BURSTLEN_SINGLE |
+    DMAC_CHCTRLA_TRIGACT_BURST |
+    DMAC_CHCTRLA_TRIGSRC(TC1_DMAC_ID_MC_0)
+);
+
+const uint16_t dac0_dmac_descriptor_settings = 
+(
+    DMAC_BTCTRL_VALID |
+    DMAC_BTCTRL_BLOCKACT_BOTH |
+    DMAC_BTCTRL_BEATSIZE_HWORD |
+    DMAC_BTCTRL_SRCINC
+);
+
+const ml_dmac_s dac0_dmac_prototype =
+{
+    .chan_prilvl = PRILVL0,
+    .ex_chnum = DMAC_CH2,
+    .irqn = DMAC_2_IRQn,
+    .irqn_prilvl = 2,
+    .chan_settings = dac0_dmac_channel_settings,
+    .descriptor_settings = dac0_dmac_descriptor_settings,
+    .intmsk = DAC0_DMAC_INTMSK,
+    .nvic = true
+};
+

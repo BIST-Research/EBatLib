@@ -105,8 +105,6 @@ typedef enum _ml_spi_dord_t
     DORD_LSBFIRST = ML_SERCOM_SPI_DORD_LSBFIRST
 } ml_spi_dord_t;
 
-
-
 typedef struct _ml_spi_s
 {
     Sercom *com_inst;

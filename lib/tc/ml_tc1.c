@@ -10,19 +10,25 @@
 void TC1_init(void)
 {
     MCLK->APBAMASK.bit.TC1_ = true;
-    ML_SET_GCLK0_PCHCTRL(TC1_GCLK_ID);
+    ML_SET_GCLK4_PCHCTRL(TC1_GCLK_ID);
 
     TC_disable(TC1);
     TC_swrst(TC1);
 
-    TC1->COUNT16.CTRLA.bit.PRESCALER = PRESCALER_DIV8;
+    TC1->COUNT16.CTRLA.bit.PRESCALER = PRESCALER_DIV2;
     TC1->COUNT16.CTRLA.bit.MODE = MODE_COUNT16;
     TC1->COUNT16.CTRLA.bit.PRESCSYNC = PRESCSYNC_PRESC;
 
-    TC1->COUNT16.WAVE.bit.WAVEGEN = WAVEGEN_NFRQ;
+    TC1->COUNT16.WAVE.bit.WAVEGEN = WAVEGEN_MFRQ;
 
-    TC1->COUNT16.CC[0].reg = TC_COUNT16_CC_CC(40000);
+    TC1->COUNT16.CC[0].reg = TC_COUNT16_CC_CC(98);
     while(TC0->COUNT16.SYNCBUSY.bit.CC0)
+    {
+        /* Wait for sync */
+    }
+
+    TC1->COUNT16.CC[1].reg = TC_COUNT16_CC_CC(98);
+    while(TC0->COUNT16.SYNCBUSY.bit.CC1)
     {
         /* Wait for sync */
     }
