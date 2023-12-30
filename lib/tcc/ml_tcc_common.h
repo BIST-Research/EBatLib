@@ -3,8 +3,8 @@
  * Date created: 3/8/23
  */
 
-#ifndef ML_TCC_H
-#define ML_TCC_H
+#ifndef ML_TCC_COMMON_H
+#define ML_TCC_COMMON_H
 
 #include <Arduino.h>
 
@@ -49,16 +49,38 @@ extern "C"
 
 #define TCC_CLR_OVF_INTFLAG(instance) (instance->INTFLAG.bit.OVF = 0x1)
 
+void TCC_enable(Tcc *instance);
+
+void TCC_disable(Tcc *instance);
+
+void TCC_swrst(Tcc *instance);
+
 void TCC_sync(Tcc *instance);
 
+void TCC_set_oneshot(Tcc *instance);
+
+void TCC_clr_oneshot(Tcc *instance);
+
+void TCC_force_stop(Tcc *instance);
+
+void TCC_force_retrigger(Tcc *instance);
+
 void TCC_set_period(Tcc *instance, uint32_t value);
+
+void TCC_update_period(Tcc *instance, uint16_t val);
+
+void TCC_lock_update(Tcc *instance);
+
+void TCC_unlock_update(Tcc *instance);
 
 void TCC_channel_capture_compare_set(Tcc *instance, const uint8_t channel, const uint8_t value);
 
 void TCC_intenset(Tcc *instance, const IRQn_Type IRQn, const uint8_t interrupt_mask, const uint32_t priority_level);
 
+void TCC_update_prescaler(Tcc *instance, uint8_t prescaler);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif // ML_TCC_H
+#endif // ML_TCC_COMMON_H

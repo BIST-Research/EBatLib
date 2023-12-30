@@ -4,7 +4,6 @@
  */
 
 #include <ml_dac_common.h>
-#include <ml_clocks.h>
 #include <ml_tc1.h>
 
 void DAC_enable(void)
@@ -35,17 +34,14 @@ void DAC_swrst(void)
 
 void DAC_init(void)
 {
-    MCLK->APBDMASK.bit.DAC_ = 0x01;
-    ML_SET_GCLK4_PCHCTRL(DAC_GCLK_ID);
-
     DAC_disable();
     DAC_swrst();
 
     DAC->INTFLAG.reg = DAC_INTFLAG_MASK;
 
-    ML_DAC_SET_REFSEL(VREF_VDDANA);
+    ML_DAC_SET_REFSEL(VREF_VREFAB);
     ML_DAC_UNSET_DIFFMODE();
 
-    TC1_init();
+    //TC1_init();
     //TC1_CC0_pinout();
 }

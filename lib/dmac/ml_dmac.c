@@ -39,7 +39,7 @@ void DMAC_init(DmacDescriptor *base_descriptor, volatile DmacDescriptor *writeba
  * Initializes a given channel of the DMAC.
  * Essentially, we can split up the different "responsibilities" of the DMAC
  * into different channels, i.e. one channel for moving data from the ADC to memory 
- * and another for moving data from memeory to a TCC instance
+ * and another for moving data from memory to a TCC instance
  * 
  */
 void DMAC_channel_init(const ml_dmac_chnum_t channel, const uint32_t settings, const ml_dmac_chprilvl_t priority_level)
@@ -113,4 +113,19 @@ uint32_t DMAC_extract_btsize(const uint16_t descriptor_settings)
                       sizeof(uint32_t) : 
                       sizeof(uint16_t) : 
                       sizeof(uint8_t);
+}
+
+// only works if DMAC->Channel[0].CHINTENSET.bit.SUSP = 0x1
+// i.e., channel suspend interrupt must be enabled
+void DMAC_suspend_channel
+(
+  uint8_t chnum
+)
+{
+  ML_DMAC_CHANNEL_SUSPEND(chnum);
+  while(!ML_DMAC_CHANNEL_SUSP_INTFLAG(chnum))
+  {
+    /* wait for channel to suspend */
+  }
+  ML_DMAC_CHANNEL_CLR_SUSP_INTFLAG(chnum);
 }

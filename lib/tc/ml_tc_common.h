@@ -154,6 +154,8 @@ void TC_force_retrigger(Tc *instance);
 #define ML_TC_MC0_CLR_INTFLAG(instance)      (instance->COUNT16.INTFLAG.bit.MC0 = 0x01)
 #define ML_TC_MC1_CLR_INTFLAG(instance)      (instance->COUNT16.INTFLAG.bit.MC1 = 0x01)
 
+#define ML_TC_CLR_INTFLAGS(instance)         (instance->COUNT16.INTFLAG.reg = TC_INTFLAG_MASK)
+
 #define ML_TC_OVF_INTFLAG(instance)          (instance->COUNT16.INTFLAG.bit.OVF == 0x01)
 #define ML_TC_ERR_INTFLAG(instance)          (instance->COUNT16.INTFLAG.bit.ERR == 0x01)
 #define ML_TC_MC0_INTFLAG(instance)          (instance->COUNT16.INTFLAG.bit.MC0 == 0x01)

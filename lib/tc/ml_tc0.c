@@ -4,14 +4,9 @@
  */
 #include <ml_tc0.h>
 #include <ml_tc_common.h>
-#include <ml_port.h>
-#include <ml_clocks.h>
 
 void TC0_init(void)
 {
-    MCLK->APBAMASK.bit.TC1_ = true;
-    ML_SET_GCLK0_PCHCTRL(TC0_GCLK_ID);
-
     TC_disable(TC0);
     TC_swrst(TC0);
 
@@ -27,13 +22,18 @@ void TC0_init(void)
         /* Wait for sync */
     }
 
-    ML_TC_OVF_INTSET(TC0);
-    NVIC_EnableIRQ(TC0_IRQn);
-    NVIC_SetPriority(TC0_IRQn, 2);
+    TC_set_oneshot(TC0);
+
+    ML_TC_CLR_INTFLAGS(TC0);
+
+    //ML_TC_OVF_INTSET(TC0);
+    //NVIC_EnableIRQ(TC0_IRQn);
+    //NVIC_SetPriority(TC0_IRQn, 2);
 
     //ML_TC_OVF_CLR_INTFLAG(TC0);
 }
 
+/*
 const ml_pin_settings tc0_cc0_pin = 
 {
     PORT_GRP_A, 4, PF_E, PP_EVEN, OUTPUT_PULL_DOWN, DRIVE_ON
@@ -42,7 +42,7 @@ const ml_pin_settings tc0_cc0_pin =
 void TC0_CC0_pinout(void)
 {
     peripheral_port_init(&tc0_cc0_pin);
-}
+}*/
 
 void TC0_intset
 (

@@ -10,7 +10,6 @@
 #define CONFIG_DIRSET(config)       (((config & 0x1) >> 0))
 #define CONFIG_OUT(config)          (((config & 0x10) >> 4))
 
-
 void peripheral_port_init(const ml_pin_settings *set)
 {
 

@@ -4,8 +4,6 @@
  */
 
 #include <ml_eic.h>
-#include <ml_clocks.h>
-#include <ml_port.h>
 
 void eic_init(void)
 {
@@ -41,10 +39,10 @@ void eic_enable(void)
  *   - IB: A0
  *   - GC: A0
  */
-const ml_pin_settings ml_hardware_int_pin = 
+/*const ml_pin_settings ml_hardware_int_pin = 
 {
     PORT_GRP_A, 2, PF_A, PP_EVEN, INPUT_PULL_DOWN, DRIVE_OFF
-};
+};*/
 
 void hardware_int_init(void)
 {
@@ -68,7 +66,7 @@ void hardware_int_init(void)
     NVIC_EnableIRQ(EIC_2_IRQn);
     NVIC_SetPriority(EIC_2_IRQn, 0);
 
-    peripheral_port_init(&ml_hardware_int_pin);
+    //peripheral_port_init(&ml_hardware_int_pin);
 }
 
 
