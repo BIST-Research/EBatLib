@@ -63,3 +63,50 @@ void logical_toggle(const ml_pin_settings *set)
 {
     PORT->Group[set->group].OUTTGL.reg = (1 << PORT_OUTTGL_OUTTGL(set->pin));
 }
+
+const ml_pin_settings dotstar_clk_pin = 
+{
+    PORT_GRP_B, 2, PF_D, PP_EVEN, OUTPUT_PULL_DOWN, DRIVE_OFF
+};
+
+const ml_pin_settings dotstar_data_pin = 
+{
+    PORT_GRP_B, 3, PF_D, PP_ODD, OUTPUT_PULL_DOWN, DRIVE_OFF
+};
+
+void dotstar_init(void)
+{
+    peripheral_port_init(&dotstar_clk_pin);
+    peripheral_port_init(&dotstar_data_pin);
+}
+
+void dotstar_write(uint8_t x)
+{
+    for(uint8_t i = 0x80; i != 0; i >>= 1)
+    {
+        if(x & i)
+        {
+            logical_set(&dotstar_data_pin);
+        }
+        else 
+        {
+            logical_unset(&dotstar_data_pin);
+        }
+
+        logical_set(&dotstar_clk_pin);
+        logical_unset(&dotstar_clk_pin);
+    }
+}
+
+void dotstar_set(uint8_t r, uint8_t g, uint8_t b, uint8_t brightness)
+{
+    dotstar_write(0x00);
+    dotstar_write(0x00);
+    dotstar_write(0x00);
+    dotstar_write(0x00);
+
+    dotstar_write(0b11100000 | brightness);
+    dotstar_write(b);
+    dotstar_write(g);
+    dotstar_write(r);
+}

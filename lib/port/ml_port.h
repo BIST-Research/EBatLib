@@ -92,6 +92,12 @@ void logical_toggle
     const ml_pin_settings *set
 );
 
+/*
+ * Works on ItsyBitsy M4 -- controls RGB LED 
+ */
+void dotstar_init(void);
+void dotstar_set(uint8_t r, uint8_t g, uint8_t b, uint8_t brightness);
+
 #ifdef __cplusplus
 }
 #endif
