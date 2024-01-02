@@ -98,6 +98,10 @@ void logical_toggle
 void dotstar_init(void);
 void dotstar_set(uint8_t r, uint8_t g, uint8_t b, uint8_t brightness);
 
+#define DOTSTAR_SET_BLUE() (dotstar_set(0x00, 0x00, 0xff, 31))
+#define DOTSTAR_SET_RED() (dotstar_set(0xff, 0x00, 0x00, 31))
+#define DOTSTAR_SET_GREEN() (dotstar_set(0x00, 0xff, 0x00, 31))
+
 #ifdef __cplusplus
 }
 #endif

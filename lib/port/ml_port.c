@@ -78,6 +78,9 @@ void dotstar_init(void)
 {
     peripheral_port_init(&dotstar_clk_pin);
     peripheral_port_init(&dotstar_data_pin);
+
+    port_pmux_disable(&dotstar_data_pin);
+    port_pmux_disable(&dotstar_clk_pin);
 }
 
 void dotstar_write(uint8_t x)

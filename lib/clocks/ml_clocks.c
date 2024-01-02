@@ -30,7 +30,7 @@ void MCLK_init(void)
   //MCLK->APBCMASK.bit.CCL_ = true;
 
   MCLK->APBDMASK.bit.DAC_ = true;
-  MCLK->APBDMASK.bit.SERCOM5_ = true;
+  //MCLK->APBDMASK.bit.SERCOM5_ = true;
 
   //MCLK->APBDMASK.reg |= MCLK_APBDMASK_SERCOM4;
 
