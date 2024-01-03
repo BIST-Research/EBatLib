@@ -2,7 +2,7 @@
 #include <ml_port.h>
 #include <ml_sercom_0.h>
 
-
+#define _USART_SYNC(instance, label) while (instance->USART.SYNCBUSY.bit.label)
 
 void sercom0_usart_init(const ml_sercom_usart_settings* const settings)
 {
@@ -25,5 +25,7 @@ void sercom0_usart_init(const ml_sercom_usart_settings* const settings)
     }
     
     SERCOM0->USART.CTRLB.bit.RXEN = 1;
+    _USART_SYNC(SERCOM0, CTRLB);
     SERCOM0->USART.CTRLB.bit.TXEN = 1;
+    _USART_SYNC(SERCOM0, CTRLB);
 }

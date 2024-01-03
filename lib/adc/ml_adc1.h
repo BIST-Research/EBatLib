@@ -1,0 +1,25 @@
+#ifndef ML_ADC1_H
+#define ML_ADC1_H
+
+#include <Arduino.h>
+#include <ml_dmac.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif 
+
+
+#define ML_ADC1_DEFAULT_CHANNEL_SETTINGS (DMAC_CHCTRLA_BURSTLEN_SINGLE | DMAC_CHCTRLA_TRIGACT_BURST | DMAC_CHCTRLA_TRIGSRC(ADC1_DMAC_ID_RESRDY))
+#define ML_ADC1_DEFAULT_DESCRIPTOR_SETTINGS (DMAC_BTCTRL_DSTINC | DMAC_BTCTRL_BEATSIZE_HWORD | DMAC_BTCTRL_BLOCKACT_BOTH | DMAC_BTCTRL_EVOSEL_BURST | DMAC_BTCTRL_VALID)
+
+
+
+void ADC1_init(void);
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

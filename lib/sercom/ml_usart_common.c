@@ -1,14 +1,16 @@
 #include <Arduino.h>
 #include <ml_usart_common.h>
 
-
+#define _USART_SYNC(instance, label) while (instance->USART.SYNCBUSY.bit.label)
 void usart_enable(void)
 {
-
+    SERCOM0->USART.CTRLA.bit.ENABLE = 1;
+    _USART_SYNC(SERCOM0, ENABLE);
 }
 void usart_disable(void)
 {
-
+    SERCOM0->USART.CTRLA.bit.ENABLE = 1;
+    _USART_SYNC(SERCOM0, ENABLE);
 }
 
 
