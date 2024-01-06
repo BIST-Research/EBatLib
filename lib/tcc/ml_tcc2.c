@@ -16,15 +16,16 @@ void TCC2_init(void)
     TCC_disable(TCC2);
     TCC_swrst(TCC2);
 
-    TCC0->CTRLA.reg = 
+    TCC2->CTRLA.reg = 
     (
         TCC_CTRLA_PRESCALER_DIV2 |
         TCC_CTRLA_PRESCSYNC_PRESC
     );
 
-    TCC0->WAVE.reg = TCC_WAVE_WAVEGEN_NFRQ;
+    TCC2->WAVE.reg = TCC_WAVE_WAVEGEN_NFRQ;
 
     // 12 MHz / (2 * 6) = 1 MHz
-    TCC_set_period(TCC0, 6);
+    TCC_set_period(TCC2, 6);
+    //TCC_channel_capture_compare_set(TCC2, 0, 3);
 
 }

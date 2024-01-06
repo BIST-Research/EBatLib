@@ -25,6 +25,7 @@ void MCLK_init(void)
   MCLK->APBBMASK.bit.TC2_ = true;
   MCLK->APBBMASK.bit.TC3_ = true;
   MCLK->APBBMASK.bit.EVSYS_ = true;
+  MCLK->APBCMASK.bit.TCC2_ = true;
 
   //MCLK->APBCMASK.bit.AC_ = true;
   //MCLK->APBCMASK.bit.CCL_ = true;
