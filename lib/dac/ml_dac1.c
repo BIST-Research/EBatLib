@@ -4,6 +4,7 @@
  */
 
 #include <ml_dac1.h>
+#include <ml_dmac.h>
 
 void DAC1_init(void)
 {

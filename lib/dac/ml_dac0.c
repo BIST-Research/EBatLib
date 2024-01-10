@@ -5,6 +5,7 @@
 
 #include <ml_dac0.h>
 #include <ml_clocks.h>
+#include <ml_dmac.h>
 #include <stdbool.h>
 
 void DAC0_init(void)

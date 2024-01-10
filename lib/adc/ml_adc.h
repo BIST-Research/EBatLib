@@ -7,6 +7,7 @@
 #define ML_ADC_H
 
 #include <Arduino.h>
+#include <ml_dmac.h>
 
 #ifdef __cplusplus
 extern "C"

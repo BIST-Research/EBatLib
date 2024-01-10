@@ -6,7 +6,6 @@
 #include <ml_adc.h>
 #include <ml_adc0.h>
 #include <ml_adc1.h>
-#include <ml_dmac.h>
 #include <ml_clocks.h>
 
 /**
@@ -415,7 +414,7 @@ void ADC1_init(void)
 void ADC_initDMA(Adc* const instance, ml_dmac_chnum_t chnum, uint32_t* destination, uint16_t length, ml_dmac_chprilvl_t priv, uint32_t channel_settings, uint32_t desc_settings, uint32_t descaddr, DmacDescriptor* cpy)
 {
     DMAC_channel_init(chnum, channel_settings, priv);
-    DMAC_descriptor_init(desc_settings, length, &instance->RESULT.reg, (uint32_t) destination, descaddr, cpy);
+    DMAC_descriptor_init(desc_settings, length, (uint32_t) &instance->RESULT.reg, (uint32_t) destination, descaddr, cpy);
 }
  
 

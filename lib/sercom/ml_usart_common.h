@@ -1,7 +1,10 @@
+
 #ifndef ML_SERCOM_USART_H
 #define ML_SERCOM_USART_H
 
 #include <stdint.h>
+#include <Arduino.h>
+#include <ml_dmac.h>
 
 #define ML_USART_MODE_EXTERNAL 0x00
 #define ML_USART_MODE_INTERNAL 0x01
@@ -23,7 +26,7 @@
 #define ML_USART_ONE_STOPBIT    0x00
 #define ML_USART_TWO_STOPBIT    0x01
 
-#include <ml_dmac.h>
+
 typedef enum
 {
     USART_MODE_EXTERNAL = ML_USART_MODE_EXTERNAL,
@@ -68,7 +71,6 @@ typedef struct
     uint16_t baud;
 } ml_sercom_usart_settings_t;
 
-
 typedef struct 
 {
     ml_sercom_usart_settings_t sercom_settings;
@@ -82,20 +84,21 @@ typedef struct
 
 
 
-void usart_dmac_rx_init(const ml_dmac_s* const, DmacDescriptor*);
-void usart_dmac_tx_init(const ml_dmac_s* const, DmacDescriptor*);
-void usart_enable(void);
-void usart_disable(void);
+void usart_dmac_rx_init(Sercom* const, const ml_dmac_s* const, DmacDescriptor*);
+void usart_dmac_tx_init(Sercom* const, const ml_dmac_s* const, DmacDescriptor*);
+void usart_enable(Sercom* const);
+void usart_swrst(Sercom* const);
+void usart_disable(Sercom* const);
 
-bool usart_can_transmit(void);
-bool usart_can_receive(void);
+bool usart_can_transmit(Sercom* const);
+bool usart_has_receive(Sercom* const);
 
 
-uint32_t usart_read(void);
-void usart_write(uint32_t);
+uint32_t usart_read(Sercom* const);
+void usart_write(Sercom* const, uint32_t);
 
-uint8_t usart_transaction8(uint8_t);
-uint32_t usart_transaction32(uint32_t);
+uint8_t usart_transaction8(Sercom* const, uint8_t);
+uint32_t usart_transaction32(Sercom* const, uint32_t);
 
 
 #define ML_SERCOM_USART_INTCLR_ERR(instance)    (instance->USART.INTENCLR.bit.ERROR = 0x01)
