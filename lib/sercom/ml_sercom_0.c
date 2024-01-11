@@ -75,16 +75,16 @@ const ml_usart_s usart_prototype = {
 
 void sercom0_usart_init(const ml_sercom_usart_settings_t* const settings)
 {
+    assert(settings->rxpo != SERCOM_PAD0);
     usart_disable(SERCOM0);
     usart_swrst(SERCOM0);
-    
     SERCOM0->USART.CTRLA.bit.FORM   = 0x00;
     SERCOM0->USART.CTRLA.bit.MODE   = settings->mode;
     SERCOM0->USART.CTRLA.bit.CMODE  = settings->cmode;
     SERCOM0->USART.CTRLB.bit.CHSIZE = settings->chsize;
     SERCOM0->USART.CTRLB.bit.SBMODE = settings->sbmode;
     SERCOM0->USART.CTRLA.bit.SAMPR  = 0x00;
-    SERCOM0->USART.CTRLA.bit.RXPO   = 0x01;
+    SERCOM0->USART.CTRLA.bit.RXPO   = settings->rxpo;
     SERCOM0->USART.CTRLA.bit.TXPO   = 0x00;
 
     if (settings->mode == ML_USART_MODE_INTERNAL)
@@ -97,12 +97,6 @@ void sercom0_usart_init(const ml_sercom_usart_settings_t* const settings)
         SERCOM0->USART.CTRLA.bit.FORM |= 0x01;
         SERCOM0->USART.CTRLB.bit.PMODE = settings->parity;
     }
-    
-    SERCOM0->USART.CTRLB.bit.RXEN = 1;
-    _USART_SYNC(SERCOM0, CTRLB);
-    SERCOM0->USART.CTRLB.bit.TXEN = 1;
-    _USART_SYNC(SERCOM0, CTRLB);
-
 
     ML_SERCOM_USART_INTSET_TXC(SERCOM0);
     ML_SERCOM_USART_INTSET_RXC(SERCOM0);

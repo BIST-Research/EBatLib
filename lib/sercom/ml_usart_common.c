@@ -23,6 +23,30 @@ void usart_disable(Sercom* const sercom)
     _USART_SYNC(SERCOM0, ENABLE);
 }
 
+void usart_transmitter_enable(Sercom* const sercom)
+{
+    sercom->USART.CTRLB.bit.TXEN = 1;
+    _USART_SYNC(SERCOM0, CTRLB);
+}
+
+void usart_transmitter_disable(Sercom* const sercom)
+{
+    sercom->USART.CTRLB.bit.TXEN = 0;
+    _USART_SYNC(SERCOM0, CTRLB);
+}
+
+void usart_receiver_enable(Sercom* const sercom)
+{
+    sercom->USART.CTRLB.bit.RXEN = 1;
+    _USART_SYNC(SERCOM0, CTRLB);
+}
+
+void usart_receiver_disable(Sercom* const sercom)
+{
+    sercom->USART.CTRLB.bit.RXEN = 0;
+    _USART_SYNC(SERCOM0, CTRLB);
+}
+
 bool usart_can_transmit(Sercom* const sercom)
 {
     return ML_SERCOM_USART_INTFLAG_DRE(sercom);

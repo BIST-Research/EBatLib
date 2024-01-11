@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <Arduino.h>
 #include <ml_dmac.h>
+#include <ml_sercom.h>
 
 #define ML_USART_MODE_EXTERNAL 0x00
 #define ML_USART_MODE_INTERNAL 0x01
@@ -61,6 +62,8 @@ typedef enum
 } ml_sercom_usart_sbmode_t;
 
 
+
+
 typedef struct
 {
     ml_sercom_usart_mode_t mode;
@@ -68,6 +71,7 @@ typedef struct
     ml_sercom_usart_chsize_t chsize;
     ml_sercom_usart_parity_t parity;
     ml_sercom_usart_sbmode_t sbmode;
+    ml_sercom_pads_t rxpo;
     uint16_t baud;
 } ml_sercom_usart_settings_t;
 
@@ -89,6 +93,12 @@ void usart_dmac_tx_init(Sercom* const, const ml_dmac_s* const, DmacDescriptor*);
 void usart_enable(Sercom* const);
 void usart_swrst(Sercom* const);
 void usart_disable(Sercom* const);
+
+void usart_transmitter_enable(Sercom* const);
+void usart_transmitter_disable(Sercom* const);
+void usart_receiver_enable(Sercom* const);
+void usart_receiver_disable(Sercom* const);
+
 
 bool usart_can_transmit(Sercom* const);
 bool usart_has_receive(Sercom* const);

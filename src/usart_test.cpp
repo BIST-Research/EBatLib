@@ -30,6 +30,7 @@ const ml_sercom_usart_settings_t usart_settings =
     USART_CHSIZE_8,
     USART_PARITY_EVEN,
     USART_SBMODE_ONE,
+    SERCOM_PAD1,
     0xCED9
 };
 //PA04
@@ -44,6 +45,8 @@ void setup()
 
     Serial.begin(9600);
     sercom0_usart_init(&usart_settings);
+    usart_transmitter_enable(SERCOM0);
+    usart_receiver_enable(SERCOM0);
     usart_enable(SERCOM0);
 }
 
