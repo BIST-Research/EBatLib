@@ -26,6 +26,6 @@ void TCC2_init(void)
 
     // 12 MHz / (2 * 6) = 1 MHz
     TCC_set_period(TCC2, 6);
-    //TCC_channel_capture_compare_set(TCC2, 0, 3);
+    TCC_channel_capture_compare_set(TCC2, 0, 3);
 
 }

@@ -85,16 +85,6 @@ void TCC_force_stop(Tcc *instance)
 void TCC_update_period(Tcc *instance, uint16_t val)
 {
   instance->PERBUF.bit.PERBUF = val;
-  while(instance->SYNCBUSY.bit.PER)
-  {
-    /* Wait for sync */
-  }
-
-  instance->CTRLBSET.bit.CMD = TCC_CTRLBSET_CMD_UPDATE_Val;
-  while(instance->SYNCBUSY.bit.CTRLB)
-  {
-    /* Wait for sync */
-  }
 }
 
 void TCC_lock_update(Tcc *instance)
