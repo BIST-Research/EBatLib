@@ -4,6 +4,10 @@
  */
 #include <ml_sercom_1.h>
 #include <ml_dmac.h>
+
+// BAUD = fref/(2*fbaud) - 1
+#define SERCOM1_SPI_BAUD 0x04
+
 /*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                        PAD0
@@ -160,9 +164,9 @@ void sercom1_spi_init(const ml_spi_opmode_t opmode)
     }
 
     //SERCOM1->SPI.CTRLC.bit.ICSPACE = 0x00;
-    SERCOM1->SPI.CTRLC.bit.DATA32B = true;
+    SERCOM1->SPI.CTRLC.bit.DATA32B = false;
 
-    SERCOM1->SPI.BAUD.bit.BAUD = 0x32; // hex(50) = 0x32
+    SERCOM1->SPI.BAUD.bit.BAUD = SERCOM1_SPI_BAUD;
 
     ML_SERCOM_SPI_INTSET_DRE(SERCOM1);
     ML_SERCOM_SPI_INTSET_ERR(SERCOM1);
@@ -226,7 +230,7 @@ const uint32_t sercom1_spi_rx_dmac_channel_settings =
 
 const uint16_t sercom1_spi_rx_master_dmac_descriptor_settings = 
 (
-    DMAC_BTCTRL_BEATSIZE_WORD |
+    DMAC_BTCTRL_BEATSIZE_BYTE |
     DMAC_BTCTRL_DSTINC |
     DMAC_BTCTRL_BLOCKACT_BOTH |
     DMAC_BTCTRL_VALID
@@ -234,7 +238,7 @@ const uint16_t sercom1_spi_rx_master_dmac_descriptor_settings =
 
 const uint16_t sercom1_spi_rx_slave_dmac_descriptor_settings =
 (
-    DMAC_BTCTRL_BEATSIZE_WORD |
+    DMAC_BTCTRL_BEATSIZE_BYTE |
     DMAC_BTCTRL_DSTINC |
     DMAC_BTCTRL_BLOCKACT_INT |
     DMAC_BTCTRL_VALID
@@ -251,7 +255,7 @@ const uint16_t sercom1_spi_tx_master_dmac_descriptor_settings =
 (
     DMAC_BTCTRL_VALID |
     DMAC_BTCTRL_BLOCKACT_BOTH |
-    DMAC_BTCTRL_BEATSIZE_WORD |
+    DMAC_BTCTRL_BEATSIZE_BYTE |
     DMAC_BTCTRL_SRCINC
 );
 
@@ -259,7 +263,7 @@ const uint16_t sercom1_spi_tx_slave_dmac_descriptor_settings =
 (
     DMAC_BTCTRL_VALID |
     DMAC_BTCTRL_BLOCKACT_INT |
-    DMAC_BTCTRL_BEATSIZE_WORD |
+    DMAC_BTCTRL_BEATSIZE_BYTE |
     DMAC_BTCTRL_SRCINC
 );
 
