@@ -19,7 +19,6 @@ void MCLK_init(void)
   // set peripheral bus access, so we can access their registers in setup and main loop
   MCLK->APBAMASK.bit.TC0_ = true;
   MCLK->APBAMASK.bit.EIC_ = true;
-  MCLK->APBAMASK.bit.SERCOM1_ = true;
 
   MCLK->APBBMASK.bit.TCC0_ = true;
   MCLK->APBBMASK.bit.TCC1_ = true;
@@ -27,6 +26,7 @@ void MCLK_init(void)
   MCLK->APBBMASK.bit.TC3_ = true;
   MCLK->APBBMASK.bit.EVSYS_ = true;
   MCLK->APBCMASK.bit.TCC2_ = true;
+  MCLK->APBBMASK.bit.TC2_ = true;
 
   //MCLK->APBCMASK.bit.AC_ = true;
   //MCLK->APBCMASK.bit.CCL_ = true;
@@ -92,9 +92,9 @@ void GCLK_init(void)
   while(GCLK->SYNCBUSY.bit.GENCTRL7);
 
   ML_SET_GCLK4_PCHCTRL(DAC_GCLK_ID);
+  ML_SET_GCLK4_PCHCTRL(TC2_GCLK_ID);
   ML_SET_GCLK4_PCHCTRL(TCC2_GCLK_ID);
   ML_SET_GCLK1_PCHCTRL(SERCOM5_GCLK_ID_CORE);
-
 
   ML_SET_GCLK7_PCHCTRL(ADC1_GCLK_ID);
   ML_SET_GCLK7_PCHCTRL(ADC0_GCLK_ID);
@@ -106,9 +106,7 @@ void GCLK_init(void)
   ML_SET_GCLK0_PCHCTRL(EVSYS_GCLK_ID_3);
   ML_SET_GCLK0_PCHCTRL(EVSYS_GCLK_ID_4);
   ML_SET_GCLK0_PCHCTRL(EVSYS_GCLK_ID_5);
-
-  ML_SET_GCLK0_PCHCTRL(SERCOM1_GCLK_ID_CORE);
- // ML_SET_GCLK0_PCHCTRL(SERCOM1_GCLK_ID_SLOW);
+  ML_SET_GCLK0_PCHCTRL(EIC_GCLK_ID);
 
   ML_SET_GCLK0_PCHCTRL(TC0_GCLK_ID);
   ML_SET_GCLK0_PCHCTRL(TC1_GCLK_ID);

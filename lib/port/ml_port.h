@@ -108,6 +108,7 @@ void dotstar_set(uint8_t r, uint8_t g, uint8_t b, uint8_t brightness);
 #define DOTSTAR_SET_LIGHT_GREEN() (dotstar_set(0x99, 0xff, 0x99, 31))
 #define DOTSTAR_SET_LIGHT_RED() (dotstar_set(0xff, 0x99, 0x99, 31))
 #define DOTSTAR_SET_LIGHT_ORANGE() (dotstar_set(0xff, 0xcc, 0x99, 31))
+#define DOTSTAR_SET_OFF() (dotstar_set(0x00, 0x00, 0x00, 0x00))
 
 
 #ifdef __cplusplus

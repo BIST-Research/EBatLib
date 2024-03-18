@@ -15,7 +15,7 @@ void TCC0_init(void)
 
   TCC0->CTRLA.reg = 
   (
-    TCC_CTRLA_PRESCALER_DIV2 |
+    TCC_CTRLA_PRESCALER_DIV256 |
     TCC_CTRLA_PRESCSYNC_PRESC
   );
 

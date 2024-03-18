@@ -20,6 +20,13 @@ void ADC_swrst(Adc *instance);
 void ADC_swtrig_start(Adc *instance);
 void ADC_flush(Adc *instance);
 
+#define ML_ADC_START(instance) \
+{\
+    ADC_enable(instance); \
+    ADC_flush(instance);\
+    ADC_swtrig_start(instance); \
+}
+
 #define ML_ADC_WINMON_INTSET(instance)      (instance->INTENSET.bit.WINMON = 0x01)
 #define ML_ADC_OVERRUN_INTSET(instance)     (instance->INTENSET.bit.OVERRUN = 0x01)
 #define ML_ADC_RESRDY_INTSET(instance)       (instance->INTENSET.bit.RESRDY = 0x01)
