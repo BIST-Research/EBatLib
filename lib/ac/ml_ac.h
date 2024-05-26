@@ -28,7 +28,6 @@ extern "C"
 #define ML_AC_IS_COMP0_INT() (AC->INTFLAG.bit.COMP0)
 
 void AC_sync(void);
-void AC_init(void);
 
 #ifdef __cplusplus
 }

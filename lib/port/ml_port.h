@@ -93,23 +93,116 @@ void logical_toggle
 );
 
 /*
- * Works on ItsyBitsy M4 -- controls RGB LED 
+ *
+ * M4 Express pin definitions
+ * 
  */
-void dotstar_init(void);
-void dotstar_set(uint8_t r, uint8_t g, uint8_t b, uint8_t brightness);
 
-#define DOTSTAR_SET_BLUE() (dotstar_set(0x00, 0x00, 0xff, 31))
-#define DOTSTAR_SET_RED() (dotstar_set(0xff, 0x00, 0x00, 31))
-#define DOTSTAR_SET_GREEN() (dotstar_set(0x00, 0xff, 0x00, 31))
-#define DOTSTAR_SET_YELLOW() (dotstar_set(0xff, 0xff, 0x00, 31))
-#define DOTSTAR_SET_ORANGE() (dotstar_set(0xff, 0x80, 0x00, 31))
-#define DOTSTAR_SET_PINK() (dotstar_set(0xff, 0x66, 0xb2, 31))
-#define DOTSTAR_SET_LIGHT_BLUE() (dotstar_set(0x99, 0xcc, 0xff, 31))
-#define DOTSTAR_SET_LIGHT_GREEN() (dotstar_set(0x99, 0xff, 0x99, 31))
-#define DOTSTAR_SET_LIGHT_RED() (dotstar_set(0xff, 0x99, 0x99, 31))
-#define DOTSTAR_SET_LIGHT_ORANGE() (dotstar_set(0xff, 0xcc, 0x99, 31))
-#define DOTSTAR_SET_OFF() (dotstar_set(0x00, 0x00, 0x00, 0x00))
+#define ML_M4E_TCC0_CH0_PIN 7
+#define ML_M4E_TCC0_CH0_XPIN 12
+#define ML_M4E_TCC0_CH0_PMUX 0x6
+#define ML_M4E_TCC0_CH0_PMUX_msk (PORT_PMUX_PMUXE(ML_M4E_TCC0_CH0_PMUX))
 
+#define ML_M4E_TCC0_CH1_PIN 4
+#define ML_M4E_TCC0_CH1_XPIN 13
+#define ML_M4E_TCC0_CH1_PMUX 0x6
+#define ML_M4E_TCC0_CH1_PMUX_msk (PORT_PMUX_PMUXO(ML_M4E_TCC0_CH1_PMUX))
+
+#define ML_M4E_TCC0_CH3_PIN 0
+#define ML_M4E_TCC0_CH3_XPIN 23
+#define ML_M4E_TCC0_CH3_PMUX 0x6
+#define ML_M4E_TCC0_CH3_PMUX_msk (PORT_PMUX_PMUXO(ML_M4E_TCC0_CH3_PMUX))
+
+
+// PA16 -> Peripheral function F
+#define ML_M4E_TCC1_CH0_PIN 13
+#define ML_M4E_TCC1_CH0_XPIN 16
+#define ML_M4E_TCC1_CH0_PMUX 0x5
+#define ML_M4E_TCC1_CH0_PMUX_msk (PORT_PMUX_PMUXE(ML_M4E_TCC1_CH0_PMUX))
+
+// PA17 -> Peripheral function F
+#define ML_M4E_TCC1_CH1_PIN 12
+#define ML_M4E_TCC1_CH1_XPIN 17
+#define ML_M4E_TCC1_CH1_PMUX 0x5
+#define ML_M4E_TCC1_CH1_PMUX_msk (PORT_PMUX_PMUXO(ML_M4E_TCC1_CH1_PMUX))
+
+//PA23 -> Peripheral function F
+#define ML_M4E_TCC1_CH7_PIN 0
+#define ML_M4E_TCC1_CH7_XPIN 23
+#define ML_M4E_TCC1_CH7_PMUX 0x5
+#define ML_M4E_TCC1_CH7_PMUX_msk (PORT_PMUX_PMUXO(ML_M4E_TCC1_CH7_PMUX))
+
+// PA02 -> Peripheral function B
+#define ML_M4E_ADC0_AIN0_PIN A0
+#define ML_M4E_ADC0_AIN0_XPIN 2
+#define ML_M4E_ADC0_AIN0_PMUX 0x1
+#define ML_M4E_ADC0_AIN0_PMUX_msk (PORT_PMUX_PMUXE(ML_M4E_ADC0_AIN0_PMUX))
+
+// PB08 -> Peripheral function B
+#define ML_M4E_ADC1_AIN0_PIN A4
+#define ML_M4E_ADC1_AIN0_XPIN 8
+#define ML_M4E_ADC1_AIN0_PMUX 0x1
+#define ML_M4E_ADC1_AIN0_PMUX_msk (PORT_PMUX_PMUXE(ML_M4E_ADC1_AIN0_PMUX))
+
+// PA04 --> Peripheral function B
+#define ML_M4E_AC_AIN0_PIN A3
+#define ML_M4E_AC_AIN0_XPIN 4
+#define ML_M4E_AC_AIN0_PMUX 0x1
+#define ML_M4E_AC_AIN0_PMUX_msk (PORT_PMUX_PMUXE(ML_M4E_AC_AIN0_PMUX))
+
+/*
+ *
+ * M4 GrandCentral pin definitions
+ * 
+ */
+
+// For D45, TCC0.0: PC12 -> peripheral function F and PMUXE
+#define ML_M4GC_TCC0_CH0_PIN 45
+#define ML_M4GC_TCC0_CH0_XPIN 10
+#define ML_M4GC_TCC0_CH0_PMUX 0x5                       
+#define ML_M4GC_TCC0_CH0_PMUX_msk (PORT_PMUX_PMUXE(ML_M4GC_TCC0_CH0_PMUX))
+
+// For D44, TCC0.1: PC11 -> peripheral function F and PMUXO
+#define ML_M4GC_TCC0_CH1_PIN 44
+#define ML_M4GC_TCC0_CH1_XPIN 11
+#define ML_M4GC_TCC0_CH1_PMUX 0x5
+#define ML_M4GC_TCC0_CH1_PMUX_msk (PORT_PMUX_PMUXO(ML_M4GC_TCC0_CH1_PMUX))
+
+// For D23, TCC1.3: PA15 -> peripheral function G and PMUXO
+#define ML_M4GC_TCC1_CH3_PIN 23
+#define ML_M4GC_TCC1_CH3_XPIN 15
+#define ML_M4GC_TCC1_CH3_PMUX 0x6
+#define ML_M4GC_TCC1_CH3_PMUX_msk (PORT_PMUX_PMUXO(ML_M4GC_TCC1_CH3_PMUX))
+
+#define ML_M4GC_TCC1_CH0_PIN 8
+#define ML_M4GC_TCC1_CH0_XPIN 18 //PB18, TCC1.0 : function f, PMUXE
+#define ML_M4GC_TCC1_CH0_PMUX 0x5
+#define ML_M4GC_TCC1_CH0_PMUX_msk (PORT_PMUX_PMUXE(ML_M4GC_TCC1_CH0_PMUX))
+
+// For D3, TCC0.3: PC19 -> peripheral function F and PMUXO
+#define ML_M4GC_TCC0_CH3_PIN 3
+#define ML_M4GC_TCC0_CH3_XPIN 19
+#define ML_M4GC_TCC0_CH3_PMUX 0x5
+#define ML_M4GC_TCC0_CH3_PMUX_msk (PORT_PMUX_PMUXO(ML_M4GC_TCC0_CH3_PMUX))
+
+
+// CCL_WO[0] - PB23: D11, peripheral function N
+#define ML_M4GC_CCL_CH0_PIN 11
+#define ML_M4GC_CCL_CH0_XPIN 23
+#define ML_M4GC_CCL_CH0_PMUX 0xD
+#define ML_M4GC_CCL_CH0_PMUX_msk (PORT_PMUX_PMUXO(ML_M4GC_CCL_CH0_PMUX))
+
+// PA05, A1: peripheral function B, PMUXO
+#define ML_M4GC_ADC0_AIN5_PIN A1
+#define ML_M4GC_ADC0_AIN5_XPIN 5
+#define ML_M4GC_ADC0_AIN5_PMUX 0x1
+#define ML_M4GC_ADC0_AIN5_PMUX_msk (PORT_PMUX_PMUXO(ML_M4GC_ADC0_AIN5_PMUX))
+
+// PB04, A7: peripheral function B, PMUXE
+#define ML_M4GC_ADC1_AIN6_PIN A7
+#define ML_M4GC_ADC1_AIN6_XPIN 4
+#define ML_M4GC_ADC1_AIN6_PMUX 0x1
+#define ML_M4GC_ADC1_AIN6_PMUX_msk (PORT_PMUX_PMUXE(ML_M4GC_ADC1_AIN6_PMUX))
 
 #ifdef __cplusplus
 }

@@ -150,6 +150,7 @@ void spi_dmac_rx_init
     DmacDescriptor *cpy
 );
 
+
 #define ML_SERCOM_SPI_INTSET_DRE(instance)          (instance->SPI.INTENSET.bit.DRE = 0x01)
 #define ML_SERCOM_SPI_INTSET_TXC(instance)          (instance->SPI.INTENSET.bit.TXC = 0x01)
 #define ML_SERCOM_SPI_INTSET_RXC(instance)          (instance->SPI.INTENSET.bit.RXC = 0x01)

@@ -6,7 +6,6 @@
 #include <ml_dac0.h>
 #include <ml_clocks.h>
 #include <stdbool.h>
-#include <ml_dmac.h>
 
 void DAC0_init(void)
 {
@@ -200,15 +199,15 @@ const uint16_t dac0_dmac_descriptor_settings =
     DMAC_BTCTRL_SRCINC
 );
 
-const ml_dmac_s dac0_dmac_prototype =
-{
-    .chan_prilvl = PRILVL0,
-    .ex_chnum = DMAC_CH2,
-    .irqn = DMAC_2_IRQn,
-    .irqn_prilvl = 2,
-    .chan_settings = dac0_dmac_channel_settings,
-    .descriptor_settings = dac0_dmac_descriptor_settings,
-    .intmsk = DAC0_DMAC_INTMSK,
-    .nvic = true
-};
+// const ml_dmac_s dac0_dmac_prototype =
+// {
+//     .chan_prilvl = PRILVL0,
+//     .ex_chnum = DMAC_CH2,
+//     .irqn = DMAC_2_IRQn,
+//     .irqn_prilvl = 2,
+//     .chan_settings = dac0_dmac_channel_settings,
+//     .descriptor_settings = dac0_dmac_descriptor_settings,
+//     .intmsk = DAC0_DMAC_INTMSK,
+//     .nvic = true
+// };
 

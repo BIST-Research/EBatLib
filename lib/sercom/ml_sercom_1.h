@@ -28,6 +28,9 @@ const extern ml_pin_settings ml_sercom1_spi_ss1_pin;
 const extern ml_pin_settings ml_sercom1_spi_ss2_pin;
 const extern ml_pin_settings ml_sercom1_spi_ss3_pin;
 
+const extern ml_pin_settings grand_central_sercom1_spi_ss0_pin;
+
+// itsy bitsy
 #define ML_SERCOM1_SPI_SS0_PULL() (logical_unset(&ml_sercom1_spi_ss0_pin))
 #define ML_SERCOM1_SPI_SS0_PUSH() (logical_set(&ml_sercom1_spi_ss0_pin))
 
@@ -39,6 +42,10 @@ const extern ml_pin_settings ml_sercom1_spi_ss3_pin;
 
 #define ML_SERCOM1_SPI_SS3_PULL() (logical_unset(&ml_sercom1_spi_ss3_pin))
 #define ML_SERCOM1_SPI_SS3_PUSH() (logical_set(&ml_sercom1_spi_ss3_pin))
+
+// grand central
+#define GC_SERCOM1_SPI_SS0_PULL() (logical_unset(&grand_central_sercom1_spi_ss0_pin))
+#define GC_SERCOM1_SPI_SS0_PUSH() (logical_set(&grand_central_sercom1_spi_ss0_pin))
 
 #ifdef __cplusplus
 }

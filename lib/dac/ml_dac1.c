@@ -4,7 +4,6 @@
  */
 
 #include <ml_dac1.h>
-#include <ml_dmac.h>
 
 void DAC1_init(void)
 {
@@ -197,14 +196,14 @@ const uint16_t dac1_dmac_descriptor_settings =
     DMAC_BTCTRL_SRCINC
 );
 
-const ml_dmac_s dac0_dmac_prototype =
-{
-    .chan_prilvl = PRILVL0,
-    .ex_chnum = DMAC_CH3,
-    .irqn = DMAC_3_IRQn,
-    .irqn_prilvl = 2,
-    .chan_settings = dac1_dmac_channel_settings,
-    .descriptor_settings = dac1_dmac_descriptor_settings,
-    .intmsk = DAC1_DMAC_INTMSK,
-    .nvic = true
-};
+// const ml_dmac_s dac0_dmac_prototype =
+// {
+//     .chan_prilvl = PRILVL0,
+//     .ex_chnum = DMAC_CH3,
+//     .irqn = DMAC_3_IRQn,
+//     .irqn_prilvl = 2,
+//     .chan_settings = dac1_dmac_channel_settings,
+//     .descriptor_settings = dac1_dmac_descriptor_settings,
+//     .intmsk = DAC1_DMAC_INTMSK,
+//     .nvic = true
+// };
