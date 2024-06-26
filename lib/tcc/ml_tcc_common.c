@@ -2,7 +2,34 @@
  * Author: Ben Westcott
  * Date created: 3/8/23
  */
-#include <ml_tcc.h>
+#include <ml_tcc_common.h>
+
+void TCC_enable(Tcc *instance)
+{
+  instance->CTRLA.bit.ENABLE = 0x01;
+  while(instance->SYNCBUSY.bit.ENABLE)
+  {
+    /* Wait for sync */
+  }
+}
+
+void TCC_disable(Tcc *instance)
+{
+  instance->CTRLA.bit.ENABLE = 0x00;
+  while(instance->SYNCBUSY.bit.ENABLE)
+  {
+    /* Wait for sync */
+  }
+}
+
+void TCC_swrst(Tcc *instance)
+{
+  instance->CTRLA.bit.SWRST = 0x01;
+  while(instance->SYNCBUSY.bit.SWRST)
+  {
+    /* Wait for sync */
+  }
+}
 
 void TCC_sync(Tcc *instance)
 {
@@ -13,13 +40,89 @@ void TCC_sync(Tcc *instance)
 void TCC_set_period(Tcc *instance, uint32_t value)
 {
     instance->PER.reg = TCC_PER_PER(value);
-    TCC_sync(instance);
+    while(instance->SYNCBUSY.bit.PER)
+    {
+       /* Wait for sync */
+    }
 }
 
 void TCC_channel_capture_compare_set(Tcc *instance, const uint8_t channel, const uint8_t value)
 {
     instance->CC[channel].reg = TCC_CC_CC(value);
-    TCC_sync(instance);
+    while(instance->SYNCBUSY.reg)
+    {
+       /* Wait for sync */
+    }
+}
+
+void TCC_set_oneshot(Tcc *instance)
+{
+  instance->CTRLBSET.bit.ONESHOT = 0x01;
+  while(instance->SYNCBUSY.bit.CTRLB)
+  {
+    /* Wait for sync */
+  }
+}
+
+void TCC_clr_oneshot(Tcc *instance)
+{
+  instance->CTRLBCLR.bit.ONESHOT = 0x01;
+  while(instance->SYNCBUSY.bit.CTRLB)
+  {
+    /* Wait for sync */
+  }
+}
+
+void TCC_force_stop(Tcc *instance)
+{
+  instance->CTRLBSET.bit.CMD = TCC_CTRLBSET_CMD_STOP_Val;
+  while(instance->SYNCBUSY.bit.CTRLB)
+  {
+    /* Wait for sync */
+  }
+}
+
+void TCC_update_period(Tcc *instance, uint16_t val)
+{
+  instance->PERBUF.bit.PERBUF = val;
+}
+
+void TCC_lock_update(Tcc *instance)
+{
+  instance->CTRLBSET.bit.LUPD = 0x01;
+  while(instance->SYNCBUSY.bit.CTRLB)
+  {
+    /* Wait for sync */
+  }
+}
+
+void TCC_unlock_update(Tcc *instance)
+{
+  instance->CTRLBCLR.bit.LUPD = 0x01;
+  while(instance->SYNCBUSY.bit.CTRLB)
+  {
+    /* Wait for sync */
+  }
+
+}
+
+void TCC_force_retrigger(Tcc *instance)
+{
+  instance->CTRLBSET.bit.CMD = TCC_CTRLBSET_CMD_RETRIGGER_Val;
+  while(instance->SYNCBUSY.bit.CTRLB)
+  {
+    /* Wait for sync */
+  }
+}
+
+// TCC cant be enabled!
+void TCC_update_prescaler(Tcc *instance, uint8_t prescaler)
+{
+  instance->CTRLA.bit.PRESCALER = (uint32_t)prescaler;
+  while(instance->SYNCBUSY.reg)
+  {
+    /* Wait for sync */
+  }
 }
 
 void TCC_intenset(Tcc *instance, const IRQn_Type IRQn, const uint8_t interrupt_mask, const uint32_t priority_level)
@@ -77,7 +180,7 @@ void TCC0_DITH_set(uint8_t mode, uint64_t cycles, uint64_t period, uint64_t comp
   TCC_sync(TCC0);
 }
 
-void TCC0_init(void)
+void TCC0_init_alt(void)
 {
       
   // disable TCC
@@ -208,8 +311,7 @@ void TCC0_init(void)
   // capture compare buffer reg TCC0->CCBUF.reg, similar to PERBUF (pg 1882), NEEDS to wait for SYNC on read and write*                                                              
 }
 
-void TCC0_0_Handler(void){}
-
+/*
 void TCC1_init(void)
 {
 
@@ -259,4 +361,4 @@ void TCC1_init(void)
    //NVIC_SetPriority(TCC1_0_IRQn, 0);
 
   // TCC0->DRVCTRL.reg |= TCC_DRVCTRL_INVEN1;   
-}
+}*/

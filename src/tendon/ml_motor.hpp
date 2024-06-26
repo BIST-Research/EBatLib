@@ -5,7 +5,7 @@
 
 #include <Arduino.h>
 #include <ml_port.h>
-#include <ml_tcc.h>
+#include <ml_tcc_common.h>
 
 #define ML_HPCB_LV_75P1     (75.81)
 #define ML_HPCB_LV_100P1    (100.37)

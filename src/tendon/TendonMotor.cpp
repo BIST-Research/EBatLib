@@ -1,4 +1,4 @@
-#include <TendonMotor.h>
+#include <tendon/TendonMotor.h>
 #include <ml_clocks.h>
 
 float mapf(float x, float in_min, float in_max, float out_min, float out_max)

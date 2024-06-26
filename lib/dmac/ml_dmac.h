@@ -68,6 +68,9 @@ typedef struct _ml_dmac_s
 #define ML_DMAC_CHANNEL_SUSP_INTFLAG(channel)       (DMAC->Channel[channel].CHINTFLAG.bit.SUSP == 0x01)
 #define ML_DMAC_CHANNEL_TERR_INTFLAG(channel)       (DMAC->Channel[channel].CHINTFLAG.bit.TERR == 0x01)
 
+#define ML_DMAC_CLEAR_DESCRIPTOR_VALID_BIT(settings) (settings &= ~DMAC_BTCTRL_VALID)
+#define ML_DMAC_SET_DESCRIPTOR_VALID_BIT(settings) (settings |= DMAC_BTCTRL_VALID)
+
 void DMAC_channel_intenset(const ml_dmac_chnum_t channel, const IRQn_Type IRQn, const uint8_t intmsk, const uint32_t priority_level);
 
 void DMAC_init(DmacDescriptor *base_descriptor, volatile DmacDescriptor *writeback_descriptor);
@@ -88,6 +91,11 @@ void DMAC_descriptor_cpyto
 );
 
 uint32_t DMAC_extract_btsize(const uint16_t descriptor_settings);
+
+void DMAC_suspend_channel
+(
+  uint8_t chnum
+);
 
 #ifdef __cplusplus
 }

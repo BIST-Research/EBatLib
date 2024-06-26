@@ -3,7 +3,7 @@
  * Date created: 7/31/23
  */
 
-#include <ml_encoder.hpp>
+#include <tendon/ml_encoder.hpp>
 
 void encoder_extint_init(void)
 {
@@ -99,7 +99,7 @@ void encoder_extint_init(void)
     (
         EIC_CONFIG_FILTEN0 |
         EIC_CONFIG_FILTEN1 |
-        // EIC_CONFIG_FILTEN2 |
+        EIC_CONFIG_FILTEN2 |
         EIC_CONFIG_FILTEN3 |
         EIC_CONFIG_FILTEN4 |
         EIC_CONFIG_FILTEN5 |
@@ -111,7 +111,7 @@ void encoder_extint_init(void)
     (
         EIC_CONFIG_SENSE0_BOTH |
         EIC_CONFIG_SENSE1_BOTH |
-        // EIC_CONFIG_SENSE2_BOTH |
+        EIC_CONFIG_SENSE2_BOTH |
         EIC_CONFIG_SENSE3_BOTH |
         EIC_CONFIG_SENSE4_BOTH |
         EIC_CONFIG_SENSE5_BOTH |
@@ -121,7 +121,7 @@ void encoder_extint_init(void)
 
     EIC->CONFIG[1].reg = 
     (
-        // EIC_CONFIG_FILTEN0 |
+        EIC_CONFIG_FILTEN0 |
         EIC_CONFIG_FILTEN1 |
         EIC_CONFIG_FILTEN2 |
         EIC_CONFIG_FILTEN3 |
@@ -133,7 +133,7 @@ void encoder_extint_init(void)
 
     EIC->CONFIG[1].reg |= 
     (
-        // EIC_CONFIG_SENSE0_BOTH |
+        EIC_CONFIG_SENSE0_BOTH |
         EIC_CONFIG_SENSE1_BOTH |
         EIC_CONFIG_SENSE2_BOTH |
         EIC_CONFIG_SENSE3_BOTH |
@@ -150,11 +150,13 @@ void encoder_extint_init(void)
 
         (1 << EIC_INTENSET_EXTINT(0))  |  // test
         (1 << EIC_INTENSET_EXTINT(1))  |  // test
+        (1 << EIC_INTENSET_EXTINT(2))  |
         (1 << EIC_INTENSET_EXTINT(3))  |  
         (1 << EIC_INTENSET_EXTINT(7))  |  
         (1 << EIC_INTENSET_EXTINT(4))  | 
         (1 << EIC_INTENSET_EXTINT(5))  | 
-        (1 << EIC_INTENSET_EXTINT(6))  | 
+        (1 << EIC_INTENSET_EXTINT(6))  |
+        (1 << EIC_INTENSET_EXTINT(8))  | 
         (1 << EIC_INTENSET_EXTINT(9))  | 
         (1 << EIC_INTENSET_EXTINT(10)) | 
         (1 << EIC_INTENSET_EXTINT(11)) | 
@@ -165,12 +167,14 @@ void encoder_extint_init(void)
     );
 
     NVIC_EnableIRQ(EIC_0_IRQn); // test 
-    NVIC_EnableIRQ(EIC_1_IRQn); // test 
+    NVIC_EnableIRQ(EIC_1_IRQn); // test
+    NVIC_EnableIRQ(EIC_2_IRQn); 
     NVIC_EnableIRQ(EIC_3_IRQn);  
     NVIC_EnableIRQ(EIC_7_IRQn);  
     NVIC_EnableIRQ(EIC_4_IRQn); 
     NVIC_EnableIRQ(EIC_5_IRQn); 
     NVIC_EnableIRQ(EIC_6_IRQn);
+    NVIC_EnableIRQ(EIC_8_IRQn);
     NVIC_EnableIRQ(EIC_9_IRQn);
     NVIC_EnableIRQ(EIC_10_IRQn);
     NVIC_EnableIRQ(EIC_11_IRQn);
@@ -180,12 +184,14 @@ void encoder_extint_init(void)
     NVIC_EnableIRQ(EIC_15_IRQn);
 
     NVIC_SetPriority(EIC_0_IRQn, 0xFF);  // test
-    NVIC_SetPriority(EIC_1_IRQn, 0xFF);  // test 
+    NVIC_SetPriority(EIC_1_IRQn, 0xFF);  // test
+    NVIC_SetPriority(EIC_2_IRQn, 0xFF); 
     NVIC_SetPriority(EIC_3_IRQn, 0xFF);  
     NVIC_SetPriority(EIC_7_IRQn, 0xFF);  
     NVIC_SetPriority(EIC_4_IRQn, 0xFF); 
     NVIC_SetPriority(EIC_5_IRQn, 0xFF); 
     NVIC_SetPriority(EIC_6_IRQn, 0xFF);
+    NVIC_SetPriority(EIC_8_IRQn, 0xFF);
     NVIC_SetPriority(EIC_9_IRQn, 0xFF);
     NVIC_SetPriority(EIC_10_IRQn, 0xFF);
     NVIC_SetPriority(EIC_11_IRQn, 0xFF);
