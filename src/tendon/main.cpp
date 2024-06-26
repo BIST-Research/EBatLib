@@ -1,370 +1,579 @@
 #include <Arduino.h>
-#include <ml_clocks.h>
-#include <ml_dac_common.h>
-#include <ml_dac0.h>
-#include <ml_dmac.h>
-#include <ml_port.h>
 #include <ml_tcc_common.h>
-#include <ml_tcc2.h>
 #include <ml_eic.h>
-#include <ml_tc_common.h>
-#include <ml_tc2.h>
-#include <tendon/CRC32.h>
+#include <tendon/ml_encoder.hpp>
+#include <ml_clocks.h>
+#include <tendon/TendonMotor.h>
+#include <ml_dmac.h>
+#include <ml_spi_common.h>
+#include <ml_sercom_1.h>
+#include <stdbool.h>
 
-// 2**15
-#define EMIT_BUF_LEN 65000
+/// @brief  SPI STUFF
+static DmacDescriptor base_descriptor[3] __attribute__((aligned(16)));
+static volatile DmacDescriptor wb_descriptor[3] __attribute__((aligned(16)));
 
-
-uint32_t calcHashCRC32(uint16_t* array, size_t length){
-  CRC32 crc;
-  for (size_t i = 0; i < length; i++){
-    crc.update(array[i]);
-  }
-  return crc.finalize();
-}
-
-
-
-static uint16_t chirp_out_buffer[EMIT_BUF_LEN];
-
-uint32_t init_chirp_buffer(void)
-{
-  bzero((void *)chirp_out_buffer, sizeof(uint16_t) * EMIT_BUF_LEN);
-  return (uint32_t)&chirp_out_buffer[0] + EMIT_BUF_LEN * sizeof(uint16_t);
-}
-
-
-static DmacDescriptor base_descriptor[1] __attribute__((aligned(16)));
-static volatile DmacDescriptor wb_descriptor[1] __attribute__((aligned(16)));
-
-// D4 --> PA14
-const ml_pin_settings dac_sample_timer_pin = {PORT_GRP_A, 21, PF_G, PP_ODD, OUTPUT_PULL_DOWN, DRIVE_OFF};
-// D10 --> PA20
-const ml_pin_settings amp_pin = {PORT_GRP_A, 20, PF_A, PP_EVEN, OUTPUT_PULL_DOWN, DRIVE_ON};
-// A0 --> PA02
-const ml_pin_settings dac_pin = {PORT_GRP_A, 2, PF_B, PP_EVEN, ANALOG, DRIVE_ON};
-
-const ml_pin_settings emit_trigger_pin = {PORT_GRP_A, 16, PF_A, PP_EVEN, INPUT_PULL_DOWN, DRIVE_OFF};
-
-#define AMP_DISABLE() (logical_set(&amp_pin))
-#define AMP_ENABLE() (logical_unset(&amp_pin))
-
-const uint32_t chirp_out_dmac_channel_settings = DMAC_CHCTRLA_BURSTLEN_SINGLE | //check when testing evsys
-                                                 DMAC_CHCTRLA_TRIGACT_BURST |
-                                                 //DMAC_CHCTRLA_TRIGSRC(DAC_DMAC_ID_EMPTY_0);
-                                                 DMAC_CHCTRLA_TRIGSRC(TCC0_DMAC_ID_OVF);
-
-const uint16_t chirp_out_dmac_descriptor_settings = DMAC_BTCTRL_VALID |
-                                           //         DMAC_BTCTRL_EVOSEL_BURST | //check when testing evsys
-                                                    DMAC_BTCTRL_BLOCKACT_BOTH | //check when testing evsys
-                                                    DMAC_BTCTRL_BEATSIZE_HWORD |
-                                                    DMAC_BTCTRL_SRCINC;
-
-uint32_t chirp_out_source_address;
-
-void dac_sample_timer_init(void)
-{
-  TCC_disable(TCC0);
-  TCC_swrst(TCC0);
-
-  TCC0->CTRLA.reg = 
-  (
-    //  TCC_CTRLA_PRESCALER_DIV2 |
-      TCC_CTRLA_PRESCSYNC_PRESC
-  );
-
-  TCC0->WAVE.reg = TCC_WAVE_WAVEGEN_NFRQ;
-
-  // 12 MHz / (2 * 6) = 1 MHz
-  TCC_set_period(TCC0, 11);
-  TCC_channel_capture_compare_set(TCC0, 1, 3);
-
-  //peripheral_port_init(PORT_PMUX_PMUXE(PF_E), 7, OUTPUT_PULL_DOWN, DRIVE_ON);
-
-  TCC_enable(TCC0);
-
-  peripheral_port_init(&dac_sample_timer_pin);
-}
-
-#define DAC_DMAC_CHANNEL DMAC_CH0
-#define DAC_DMAC_PRILVL PRILVL0
-
-void dac_init(void)
-{
-  // Disable DAC
-  DAC->CTRLA.bit.ENABLE = 0;
-  DAC->CTRLA.bit.SWRST = 1;
-  while (DAC->SYNCBUSY.bit.ENABLE || DAC->SYNCBUSY.bit.SWRST);
-
-  // Use an external reference voltage (see errata; the internal reference is busted)
-  DAC->CTRLB.reg = DAC_CTRLB_REFSEL_VREFPB;
-  while (DAC->SYNCBUSY.bit.ENABLE || DAC->SYNCBUSY.bit.SWRST);
-
-  DAC->DACCTRL[0].reg |= DAC_DACCTRL_CCTRL_CC12M;
-
-  DAC->DACCTRL[0].bit.ENABLE = 1;
-  while(DAC->SYNCBUSY.bit.ENABLE || DAC->SYNCBUSY.bit.SWRST);
-
-  DMAC_channel_init
-  (
-    DAC_DMAC_CHANNEL,
-    chirp_out_dmac_channel_settings,
-    DAC_DMAC_PRILVL
-  );
-
-
-  //check when testing evsys
-  DMAC_channel_intenset(DAC_DMAC_CHANNEL, DMAC_2_IRQn, DMAC_CHINTENSET_TCMPL, 0);
-
-  DMAC_descriptor_init
-  (
-    chirp_out_dmac_descriptor_settings,
-    EMIT_BUF_LEN,
-    chirp_out_source_address,
-    (uint32_t) &DAC->DATA[0].reg,
-    (uint32_t) &base_descriptor[DAC_DMAC_CHANNEL],
-    &base_descriptor[DAC_DMAC_CHANNEL]
-  );
-
-  peripheral_port_init(&dac_pin);
-}
-
-
-
-enum ECHO_SERIAL_CMD{
-  NONE = 0,
-  EMIT_CHIRP = 1,
-  CHIRP_DATA = 2,
-  ACK_REQ = 3,
-  ACK = 4,
-  ERROR = 100,
-  CHIRP_DATA_TOO_LONG = 6,
-  GET_MAX_UINT16_CHIRP_LEN = 7,
-  START_AMP = 8,
-  STOP_AMP = 9,
-  CLEAR_SERIAL = 10
+// allocated space for RX and TX buffers
+#define SPI_RX_BUFFER_LEN 17
+volatile uint8_t spi_rx_buffer[SPI_RX_BUFFER_LEN] = {
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00
 };
 
-ECHO_SERIAL_CMD cmd = ECHO_SERIAL_CMD::NONE;
+#define SPI_TX_BUFFER_LEN 17
+volatile uint8_t spi_tx_buffer[SPI_TX_BUFFER_LEN] =
+    {
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00
+};
 
-void drain_buffer(){
-  DOTSTAR_SET_ORANGE();
-  while(Serial.available()){
-    Serial.read();
+char serial_buf[SPI_RX_BUFFER_LEN];
+
+// create SPI object
+ml_spi_s spi_s = sercom1_spi_dmac_slave_prototype;
+
+// get DMAC channel numbers for rx and tx
+const uint8_t rx_dmac_chnum = spi_s.rx_dmac_s.ex_chnum;
+const uint8_t tx_dmac_chnum = spi_s.tx_dmac_s.ex_chnum;
+
+void dstack_a_init(void)
+{
+  ML_SET_GCLK7_PCHCTRL(TCC0_GCLK_ID);
+
+  TCC_DISABLE(TCC0);
+  TCC_SWRST(TCC0);
+  TCC_sync(TCC0);
+
+  TCC0->CTRLA.reg =
+      (TCC_CTRLA_PRESCALER_DIV2 |
+       TCC_CTRLA_PRESCSYNC_PRESC);
+
+  TCC0->WAVE.reg |= TCC_WAVE_WAVEGEN_NPWM;
+
+  TCC_set_period(TCC0, 6000);
+
+  // default output matrix configuration (pg. 1829)
+  TCC0->WEXCTRL.reg |= TCC_WEXCTRL_OTMX(0x00);
+
+  for (uint8_t i = 0; i < 6; i++)
+  {
+    TCC0->CC[i].reg |= TCC_CC_CC(6000 / 2);
   }
-  DOTSTAR_SET_LIGHT_RED();
+
+  /*
+   * Peripheral function "F"
+   *
+   * CC0 -> PC16 (D25),
+   * CC1 -> PC17 (D24)
+   * CC2 -> PC18 (D2)
+   * CC3 -> PC19 (D3)
+   * CC4 -> PC20 (D4)
+   * CC5 -> PC21 (D5)
+   */
 }
 
+// create bunch of tendons
+#define NUM_TENDONS 8
+
+int16_t target_motor_angles[NUM_TENDONS] = {
+    0, 0, 0, 0, 0, 0, 0, 0};
+
+TendonController tendons[NUM_TENDONS] = {
+    TendonController("motor 1"),
+    TendonController("motor 2"),
+    TendonController("motor 3"),
+    TendonController("motor 4"),
+    TendonController("motor 5"),
+    TendonController("motor 6"),
+    TendonController("motor 7"),
+    TendonController("motor 8")};
+
+void attach_tendons()
+{
+
+  // left
+  // motor 1
+  tendons[0].Attach_Drive_Pin(PORT_GRP_C, 20, PF_F, 4);
+  tendons[0].Attach_Direction_Pin(PORT_GRP_B, 16, PF_B);
+  tendons[0].Attach_EncA_Pin(PORT_GRP_C, 13, PF_A);
+  tendons[0].Attach_EncB_Pin(PORT_GRP_C, 12, PF_A);
+  tendons[0].m_gear_ratio = ML_HPCB_LV_100P1;
+
+  // motor 2
+  tendons[1].Attach_Drive_Pin(PORT_GRP_C, 21, PF_F, 5);
+  tendons[1].Attach_Direction_Pin(PORT_GRP_B, 17, PF_B);
+  tendons[1].Attach_EncB_Pin(PORT_GRP_C, 15, PF_A);
+  tendons[1].Attach_EncA_Pin(PORT_GRP_C, 14, PF_A);
+  tendons[1].m_gear_ratio = ML_HPCB_LV_100P1;
+
+  // motor 3
+  tendons[2].Attach_Drive_Pin(PORT_GRP_C, 16, PF_F, 0);
+  tendons[2].Attach_Direction_Pin(PORT_GRP_B, 20, PF_B);
+  tendons[2].Attach_EncA_Pin(PORT_GRP_C, 11, PF_A);
+  tendons[2].Attach_EncB_Pin(PORT_GRP_C, 10, PF_A);
+  tendons[2].m_gear_ratio = ML_HPCB_LV_100P1;
+
+  // motor 4
+  tendons[3].Attach_Drive_Pin(PORT_GRP_C, 17, PF_F, 1);
+  tendons[3].Attach_Direction_Pin(PORT_GRP_B, 21, PF_B);
+  tendons[3].Attach_EncB_Pin(PORT_GRP_C, 7, PF_A);
+  tendons[3].Attach_EncA_Pin(PORT_GRP_C, 6, PF_A);
+  tendons[3].m_gear_ratio = ML_HPCB_LV_100P1;
+
+  // motor 5
+  tendons[4].Attach_Drive_Pin(PORT_GRP_C, 19, PF_F, 3);
+  tendons[4].Attach_Direction_Pin(PORT_GRP_C, 22, PF_B);
+  tendons[4].Attach_EncA_Pin(PORT_GRP_C, 4, PF_A);
+  tendons[4].Attach_EncB_Pin(PORT_GRP_C, 5, PF_A);
+
+  // motor 6
+  tendons[5].Attach_Drive_Pin(PORT_GRP_C, 18, PF_F, 2);
+  tendons[5].Attach_Direction_Pin(PORT_GRP_C, 23, PF_B);
+  tendons[5].Attach_EncB_Pin(PORT_GRP_A, 23, PF_A);
+  tendons[5].Attach_EncA_Pin(PORT_GRP_D, 8, PF_A);
+
+  // motor 7
+  tendons[6].Attach_Drive_Pin(PORT_GRP_A, 12, PF_F, 6);
+  tendons[6].Attach_Direction_Pin(PORT_GRP_B, 24, PF_B);
+  tendons[6].Attach_EncA_Pin(PORT_GRP_C, 0, PF_A);
+  tendons[6].Attach_EncB_Pin(PORT_GRP_C, 1, PF_A);
+
+  // motor 8
+  tendons[7].Attach_Drive_Pin(PORT_GRP_A, 13, PF_F, 7);
+  tendons[7].Attach_Direction_Pin(PORT_GRP_B, 18, PF_B);
+  tendons[7].Attach_EncA_Pin(PORT_GRP_C, 2, PF_A);
+  tendons[7].Attach_EncB_Pin(PORT_GRP_B, 8, PF_A);
+
+// RIGHT
+  // MOTORS 9-16
+  // motor 1
+  // tendons[0].Attach_Drive_Pin(PORT_GRP_C, 20, PF_F, 4);
+  // tendons[0].Attach_Direction_Pin(PORT_GRP_B, 16, PF_B);
+  // tendons[0].Attach_EncA_Pin(PORT_GRP_C, 13, PF_A);
+  // tendons[0].Attach_EncB_Pin(PORT_GRP_C, 12, PF_A);
+
+  // // motor 2
+  // tendons[1].Attach_Drive_Pin(PORT_GRP_C, 21, PF_F, 5);
+  // tendons[1].Attach_Direction_Pin(PORT_GRP_B, 17, PF_B);
+  // tendons[1].Attach_EncB_Pin(PORT_GRP_C, 15, PF_A);
+  // tendons[1].Attach_EncA_Pin(PORT_GRP_C, 14, PF_A);
+  // tendons[1].m_gear_ratio = ML_HPCB_LV_100P1;
+
+  // // motor 3
+  // tendons[2].Attach_Drive_Pin(PORT_GRP_C, 16, PF_F, 0);
+  // tendons[2].Attach_Direction_Pin(PORT_GRP_B, 20, PF_B);
+  // tendons[2].Attach_EncA_Pin(PORT_GRP_C, 11, PF_A);
+  // tendons[2].Attach_EncB_Pin(PORT_GRP_C, 10, PF_A);
+  // tendons[2].m_gear_ratio = ML_HPCB_LV_100P1;
+
+  // // motor 4
+  // tendons[3].Attach_Drive_Pin(PORT_GRP_C, 17, PF_F, 1);
+  // tendons[3].Attach_Direction_Pin(PORT_GRP_B, 21, PF_B);
+  // tendons[3].Attach_EncB_Pin(PORT_GRP_C, 7, PF_A);
+  // tendons[3].Attach_EncA_Pin(PORT_GRP_C, 6, PF_A);
+  // // tendons[3].m_gear_ratio = ML_HPCB_LV_100P1;
+
+  // // motor 5
+  // tendons[4].Attach_Drive_Pin(PORT_GRP_C, 19, PF_F, 3);
+  // tendons[4].Attach_Direction_Pin(PORT_GRP_C, 22, PF_B);
+  // tendons[4].Attach_EncB_Pin(PORT_GRP_C, 4, PF_A);
+  // tendons[4].Attach_EncA_Pin(PORT_GRP_C, 5, PF_A);
+  // tendons[4].m_gear_ratio = ML_HPCB_LV_100P1;
+
+  // // motor 6
+  // tendons[5].Attach_Drive_Pin(PORT_GRP_C, 18, PF_F, 2);
+  // tendons[5].Attach_Direction_Pin(PORT_GRP_C, 23, PF_B);
+  // tendons[5].Attach_EncB_Pin(PORT_GRP_A, 23, PF_A);
+  // tendons[5].Attach_EncA_Pin(PORT_GRP_D, 8, PF_A);
+  // tendons[5].m_gear_ratio = ML_HPCB_LV_100P1;
+
+  // // motor 7
+  // tendons[6].Attach_Drive_Pin(PORT_GRP_A, 12, PF_F, 6);
+  // tendons[6].Attach_Direction_Pin(PORT_GRP_B, 24, PF_B);
+  // tendons[6].Attach_EncA_Pin(PORT_GRP_C, 0, PF_A);
+  // tendons[6].Attach_EncB_Pin(PORT_GRP_C, 1, PF_A);
+}
+
+void uart_controlled()
+{
+  if (Serial.available() >= SPI_RX_BUFFER_LEN)
+  {
+    // Serial.println("Got data..");
+    Serial.readBytes(serial_buf, SPI_RX_BUFFER_LEN);
+
+    // if first byte is not a zero then we need to reset an encoders position
+    if (serial_buf[0] != 0)
+    {
+      tendons[uint8_t(serial_buf[0] & 0b00001111)].Reset_Encoder_Zero();
+    }
+
+    target_motor_angles[0] = int16_t(serial_buf[1] << 8 | serial_buf[2]);
+    target_motor_angles[1] = int16_t(serial_buf[3] << 8 | serial_buf[4]);
+    target_motor_angles[2] = int16_t(serial_buf[5] << 8 | serial_buf[6]);
+    target_motor_angles[3] = int16_t(serial_buf[7] << 8 | serial_buf[8]);
+    target_motor_angles[4] = int16_t(serial_buf[9] << 8 | serial_buf[10]);
+    target_motor_angles[5] = int16_t(serial_buf[11] << 8 | serial_buf[12]);
+    target_motor_angles[6] = int16_t(serial_buf[13] << 8 | serial_buf[14]);
+    target_motor_angles[7] = int16_t(serial_buf[15] << 8 | serial_buf[16]);
+  }
+}
+const ml_pin_settings test_pin = {PORT_GRP_C, 6, PF_A, PP_EVEN, OUTPUT_PULL_UP, DRIVE_OFF};
 void setup()
 {
-  Serial.begin(960000);
-  chirp_out_source_address = init_chirp_buffer();
+  // start serial comm for debugging
+  Serial.begin(115200);
+  // while(!Serial);;
+  Serial.println("Starting");
 
+  // start clocks
   MCLK_init();
   GCLK_init();
 
-  DMAC_init(&base_descriptor[DAC_DMAC_CHANNEL],&wb_descriptor[DAC_DMAC_CHANNEL]);
-  dotstar_init();
+  // start the encoders
+  eic_init(1);
+  encoder_extint_init();
+  eic_enable();
 
+  // init TCC0 timer
+  dstack_a_init();
+  TCC_ENABLE(TCC0);
+  TCC_sync(TCC0);
 
+  // attach pins to tendon object
+  attach_tendons();
 
-  dac_init();
-  dac_sample_timer_init();
-  DAC_enable();
+  // intialize objects
+  for (int i = 0; i < NUM_TENDONS; i++)
+  {
+    tendons[i].init_peripheral();
+    tendons[i].Set_Direction(OFF);
+    tendons[i].Set_PID_Param(900, 0, 10);
+    // tendons[i].CalibrateLimits();
+  }
 
- TCC_enable(TCC2);
- TCC_force_stop(TCC2);
+  // good measure why not start the TCC0 again..
+  TCC_ENABLE(TCC0);
+  TCC_sync(TCC0);
 
+  // tendons[0].CalibrateLimits();
+  // tendons[1].CalibrateLimits();
+  // tendons[2].CalibrateLimits();
 
+  /**
+   * SPI STUFF
+   */
+  // start the DMAC
+  DMAC_init(&base_descriptor[0], &wb_descriptor[0]);
+
+  // enable the SERCOM1 pad for SPI mode
+  sercom1_spi_init(OPMODE_SLAVE);
+
+  // setup DMAC for receiving data, pointing where data should be stored
+  spi_s.rx_dmac_s.ex_ptr = &spi_rx_buffer[0];
+  spi_s.rx_dmac_s.ex_len = SPI_RX_BUFFER_LEN;
+  spi_dmac_rx_init(&spi_s.rx_dmac_s, SERCOM1, &base_descriptor[rx_dmac_chnum]);
+
+  // setup DMAC for transmitting data, pointing where data should be sent from
+  spi_s.tx_dmac_s.ex_ptr = &spi_tx_buffer[0];
+  spi_s.tx_dmac_s.ex_len = SPI_TX_BUFFER_LEN;
+  spi_dmac_tx_init(&spi_s.tx_dmac_s, SERCOM1, &base_descriptor[tx_dmac_chnum]);
+
+  // enable DMAC and turn respective channels on
   ML_DMAC_ENABLE();
-  ML_DMAC_CHANNEL_ENABLE(DAC_DMAC_CHANNEL);
-  ML_DMAC_CHANNEL_SUSPEND(DAC_DMAC_CHANNEL);
+  ML_DMAC_CHANNEL_ENABLE(rx_dmac_chnum);
+  ML_DMAC_CHANNEL_ENABLE(tx_dmac_chnum);
 
-  DOTSTAR_SET_OFF();
+  // enable spi on SERCOM1 pad
+  spi_reciever_enable(SERCOM1);
+  spi_enable(SERCOM1);
 
-
-  
+  peripheral_port_init(&test_pin);
+  port_pmux_disable(&test_pin);
+  logical_set(&test_pin);
 }
 
-bool serial_error = false;
-#define WAIT_TIME 2000
-#define ACK_SEND_SIZE 250
+// when select pin has been pulled low this means the master wants to communicat
+_Bool ssl_intflag = false;
+
+void SERCOM1_3_Handler(void)
+{
+  ssl_intflag = true;
+  ML_SERCOM_SPI_SSL_CLR_INTFLAG(SERCOM1);
+  logical_toggle(&test_pin);
+}
+
+// interrupt for reciever DMAC
+// when transfer is complete this is called
+_Bool dmac_rx_intflag = false;
+
+
+void DMAC_0_Handler(void)
+{
+  
+  if (ML_DMAC_CHANNEL_TCMPL_INTFLAG(rx_dmac_chnum))
+  {
+    
+    if (spi_rx_buffer[0] & 0x80) // check if we need to reset an encoder zero
+    {
+
+      uint8_t index = spi_rx_buffer[0] & 0b00001111;
+      if (index > NUM_TENDONS)
+      {
+        ML_DMAC_CHANNEL_CLR_TCMPL_INTFLAG(rx_dmac_chnum);
+        dmac_rx_intflag = true;
+        return; // added
+      }
+      tendons[index].Reset_Encoder_Zero();
+      target_motor_angles[index] = 0;
+      // ML_DMAC_CHANNEL_CLR_TCMPL_INTFLAG(rx_dmac_chnum);
+      // dmac_rx_intflag = true;
+      // return; // added
+    }
+    else if (spi_rx_buffer[0] & 0x40)
+    { // home a motor
+      uint8_t index = spi_rx_buffer[0] & 0b00001111;
+      if (index > NUM_TENDONS)
+      {
+        ML_DMAC_CHANNEL_CLR_TCMPL_INTFLAG(rx_dmac_chnum);
+        dmac_rx_intflag = true;
+        return; // added
+      }
+
+      tendons[index].Move_To_End(spi_rx_buffer[0]&0b00100000);
+      target_motor_angles[index] = 0;
+      // ML_DMAC_CHANNEL_CLR_TCMPL_INTFLAG(rx_dmac_chnum);
+      // dmac_rx_intflag = true;
+      // return;
+    }
+
+    // set the new angles from commanded
+    target_motor_angles[0] = int16_t(spi_rx_buffer[1] << 8 | spi_rx_buffer[2]);
+    target_motor_angles[1] = int16_t(spi_rx_buffer[3] << 8 | spi_rx_buffer[4]);
+    target_motor_angles[2] = int16_t(spi_rx_buffer[5] << 8 | spi_rx_buffer[6]);
+    target_motor_angles[3] = int16_t(spi_rx_buffer[7] << 8 | spi_rx_buffer[8]);
+    target_motor_angles[4] = int16_t(spi_rx_buffer[9] << 8 | spi_rx_buffer[10]);
+    target_motor_angles[5] = int16_t(spi_rx_buffer[11] << 8 | spi_rx_buffer[12]);
+    target_motor_angles[6] = int16_t(spi_rx_buffer[13] << 8 | spi_rx_buffer[14]);
+    target_motor_angles[7] = int16_t(spi_rx_buffer[15] << 8 | spi_rx_buffer[16]);
+
+    ML_DMAC_CHANNEL_CLR_TCMPL_INTFLAG(rx_dmac_chnum);
+    dmac_rx_intflag = true;
+  }
+}
+
+// iterrupt for transmitter DMAC
+// when transfer is complete this is called
+_Bool dmac_tx_intflag = false;
+void DMAC_1_Handler(void)
+{
+  if (ML_DMAC_CHANNEL_TCMPL_INTFLAG(tx_dmac_chnum))
+  {
+    ML_DMAC_CHANNEL_CLR_TCMPL_INTFLAG(tx_dmac_chnum);
+    dmac_tx_intflag = true;
+  }
+}
+
 void loop()
 {
-  // put your main code here, to run repeatedly:
-  // Serial.println("running");
+  // to test
+  //uart_controlled();
 
-  if (Serial.available() >= 1){
-    cmd = (ECHO_SERIAL_CMD)Serial.read();
-
-
-    switch (cmd)
-    {
-    case ECHO_SERIAL_CMD::ACK:{
-
-      break;
-    }
-
-    case ECHO_SERIAL_CMD::ACK_REQ:{
-        Serial.write(ECHO_SERIAL_CMD::ACK);
-        DOTSTAR_SET_BLUE();
-      break;
-    }
-    
-    case ECHO_SERIAL_CMD::CHIRP_DATA:{
-      // DOTSTAR_SET_PINK();
-
-      unsigned long recv_time = millis();
-      while(Serial.available() < 1 && millis() - recv_time < WAIT_TIME);
-      if (millis() - recv_time > WAIT_TIME+100 && Serial.available() <= 1){
-        Serial.write(ECHO_SERIAL_CMD::ERROR);
-        Serial.flush();
-        DOTSTAR_SET_ORANGE();
-        serial_error = true;
-        return;
-      }
-
-      // DOTSTAR_SET_LIGHT_BLUE();
-
-  
-      uint16_t chirp_len = (uint8_t)Serial.read();
-      chirp_len |= Serial.read()<<8;
-      if (chirp_len > (uint16_t) EMIT_BUF_LEN){
-        Serial.write(ECHO_SERIAL_CMD::CHIRP_DATA_TOO_LONG);
-        Serial.flush();
-        DOTSTAR_SET_RED();
-        serial_error = true;
-        return;
-      }
-
-      Serial.write(chirp_len&0xff);
-      Serial.write((chirp_len>>8)&0xff);
-      Serial.flush();
-
-      // DOTSTAR_SET_LIGHT_BLUE();
-      // pi waits for ack before flooding with data since serial buffer is so small
-      Serial.write(ECHO_SERIAL_CMD::ACK);
-      Serial.flush();
-
-      for (int i = 0; i < EMIT_BUF_LEN; i++){
-        chirp_out_buffer[i] = 0;
-      }
-      
-
-      recv_time = millis();
-      for(int i = 0; i < chirp_len;i++){
-
-        while(Serial.available() < 2 && millis() - recv_time < WAIT_TIME);
-        if(millis() - recv_time+100 > WAIT_TIME){
-          Serial.flush();
-          Serial.write(ECHO_SERIAL_CMD::ERROR);
-          Serial.flush();
-          DOTSTAR_SET_YELLOW();
-          serial_error = true;
-          return;
-        }
-        recv_time = millis();
-        chirp_out_buffer[i] = (uint8_t)Serial.read();
-        chirp_out_buffer[i] |= (uint8_t) Serial.read() <<8;
-      }
-
-      DOTSTAR_SET_LIGHT_GREEN();
-
-      recv_time = millis();
-      while(Serial.available() == 0 && millis() - recv_time < WAIT_TIME);
-      if (millis() - recv_time+100 > WAIT_TIME){
-        Serial.flush();
-        Serial.write(ECHO_SERIAL_CMD::ERROR);
-        Serial.flush();
-        DOTSTAR_SET_RED();
-        serial_error = true;
-        return;
-      }
-
-      DOTSTAR_SET_PINK();
-      cmd = (ECHO_SERIAL_CMD)Serial.read();
-      if (cmd != ECHO_SERIAL_CMD::ACK_REQ){
-        Serial.flush();
-        Serial.write(ECHO_SERIAL_CMD::ERROR);
-        Serial.flush();
-        DOTSTAR_SET_RED();
-        serial_error = true;
-        return;
-      }
-
-      Serial.write(ECHO_SERIAL_CMD::ACK);
-      Serial.flush();
-      uint32_t crc_hash = calcHashCRC32(chirp_out_buffer,chirp_len);
-      Serial.write(crc_hash&0xff);
-      Serial.write((crc_hash >>8)&0xff);
-      Serial.write((crc_hash >>16)&0xff);
-      Serial.write((crc_hash >>24)&0xff);
-      Serial.flush();
-      // for(int i = 0; i < chirp_len; i++){
-      //   Serial.write(chirp_out_buffer[i]&0xff);
-      //   Serial.write(chirp_out_buffer[i]>>8&0xff);
-      //   if (i%64 == 0){
-      //     Serial.flush();
-      //   }
-      // }
- 
-
-      DOTSTAR_SET_GREEN();
-    break;
-    }
-    case ECHO_SERIAL_CMD::EMIT_CHIRP:{
-      ML_DMAC_CHANNEL_RESUME(DAC_DMAC_CHANNEL);
-      // DMAC->SWTRIGCTRL.bit.SWTRIG0 = 0x01;
-      
-      Serial.write(ECHO_SERIAL_CMD::ACK);
-
-      DOTSTAR_SET_LIGHT_GREEN();
-      break;
-    }
-    case ECHO_SERIAL_CMD::ERROR:{
-
-      break;
-    }
-    case ECHO_SERIAL_CMD::GET_MAX_UINT16_CHIRP_LEN:{
-      Serial.write(ECHO_SERIAL_CMD::GET_MAX_UINT16_CHIRP_LEN);
-      Serial.write(EMIT_BUF_LEN &0xff);
-      Serial.write(EMIT_BUF_LEN >> 8 &0xff);
-      Serial.flush();
-      DOTSTAR_SET_LIGHT_GREEN();
-      serial_error = true;
-      break;
-    }
-    default:
-      Serial.write(ECHO_SERIAL_CMD::ERROR);
-      Serial.flush();
-      DOTSTAR_SET_RED();
-      serial_error = true;
-      break;
-    }
-
-    // Serial.flush();
-  }
-  Serial.flush();
-  
-  if (serial_error){
-    delay(5);
-    drain_buffer();
-    serial_error = false;
-  }
+  // set the target angle
+  tendons[0].Set_Angle(target_motor_angles[0]);
+  tendons[1].Set_Angle(target_motor_angles[1]);
+  tendons[2].Set_Angle(target_motor_angles[2]);
+  tendons[3].Set_Angle(target_motor_angles[3]);
+  tendons[4].Set_Angle(target_motor_angles[4]);
+  tendons[5].Set_Angle(target_motor_angles[5]);
+  tendons[6].Set_Angle(target_motor_angles[6]);
+  tendons[7].Set_Angle(target_motor_angles[7]);
 }
 
+//-----------------------------------------------------------------
+// setting up interrupts
+/*
+ * M0:
+ *      enca: D40 --> PC13 --> EXTINT[13]
+ *      encb: D41 --> PC12 --> EXTINT[12]
+ * M1:
+ *      enca: D42 --> PC15 --> EXTINT[15]
+ *      encb: D43 --> PC14 --> EXTINT[14]
+ * M2:
+ *      enca: D44 --> PC11 --> EXTINT[11]
+ *      encb: D45 --> PC10 --> EXTINT[10]
+ * M3:
+ *      enca: D46 --> PC06 --> EXTINT[6]
+ *      encb: D47 --> PC07 --> EXTINT[9]
+ * M4:
+ *      enca: D48 --> PC04 --> EXTINT[4]
+ *      encb: D49 --> PC05 --> EXTINT[5]
+ * M5:
+ *      enca: D30 --> PA23 --> EXTINT[7]
+ *      encb: D51 --> PD08 --> EXTINT[3]
+ * M6:
+ *      enca: A3 --> PC00 --> EXTINT[0]
+ *      encb: A4 --> PC01 --> EXTINT[1]
+ * 
+ * M7:
+ *      enca: A11 --> PC02 --> EXTINT[2]
+ *      encb: A5 --> PC08 --> EXTINT[8]
+ */
 
-void DMAC_2_Handler(void)
+//0, 1, (2), 3, 4, 5, 6, 7, (8), 9, 10, 11, 12, 13, 14, 15
+
+// M0
+//  *      enca: D40 --> PC13 --> EXTINT[13]
+//  *      encb: D41 --> PC12 --> EXTINT[12]
+void EIC_13_Handler(void)
 {
-  
-  if(DMAC->Channel[DAC_DMAC_CHANNEL].CHINTFLAG.bit.TCMPL)
-  {
-
-    // DOTSTAR_SET_YELLOW();
-
-    ML_DMAC_CHANNEL_CLR_SUSP_INTFLAG(DAC_DMAC_CHANNEL);
-    DMAC->Channel[DAC_DMAC_CHANNEL].CHINTFLAG.bit.TCMPL = 0x01;
-
-  }
-
+  ML_EIC_CLR_INTFLAG(13);
+  tendons[0].encoder_ISR();
 }
+void EIC_12_Handler(void)
+{
+  ML_EIC_CLR_INTFLAG(12);
+  tendons[0].encoder_ISR();
+}
+
+// M1
+//   *      enca: D42 --> PC15 --> EXTINT[15]
+//   *      encb: D43 --> PC14 --> EXTINT[14]
+void EIC_15_Handler(void)
+{
+  ML_EIC_CLR_INTFLAG(15);
+  tendons[1].encoder_ISR();
+}
+void EIC_14_Handler(void)
+{
+  ML_EIC_CLR_INTFLAG(14);
+  tendons[1].encoder_ISR();
+}
+
+// M2
+//  *      enca: D44 --> PC11 --> EXTINT[11]
+//  *      encb: D45 --> PC10 --> EXTINT[10]
+void EIC_11_Handler(void)
+{
+  ML_EIC_CLR_INTFLAG(11);
+  tendons[2].encoder_ISR();
+}
+void EIC_10_Handler(void)
+{
+  ML_EIC_CLR_INTFLAG(10);
+  tendons[2].encoder_ISR();
+}
+
+// M3
+//  *      enca: D46 --> PC06 --> EXTINT[6]
+//  *      encb: D47 --> PC07 --> EXTINT[9]
+void EIC_6_Handler(void)
+{
+  ML_EIC_CLR_INTFLAG(6);
+  tendons[3].encoder_ISR();
+}
+void EIC_9_Handler(void)
+{
+  ML_EIC_CLR_INTFLAG(9);
+  tendons[3].encoder_ISR();
+}
+
+// M4
+//  *      enca: D48 --> PC04 --> EXTINT[4]
+//  *      encb: D49 --> PC05 --> EXTINT[5]
+void EIC_4_Handler(void)
+{
+  ML_EIC_CLR_INTFLAG(4);
+  tendons[4].encoder_ISR();
+}
+void EIC_5_Handler(void)
+{
+  ML_EIC_CLR_INTFLAG(5);
+  tendons[4].encoder_ISR();
+}
+
+// M5
+//  *      enca: D30 --> PA23 --> EXTINT[7]
+//  *      encb: D51 --> PD08 --> EXTINT[3]
+void EIC_7_Handler(void)
+{
+  ML_EIC_CLR_INTFLAG(7);
+  tendons[5].encoder_ISR();
+}
+void EIC_3_Handler(void)
+{
+  ML_EIC_CLR_INTFLAG(3);
+  tendons[5].encoder_ISR();
+}
+
+// M6
+void EIC_1_Handler(void)
+{
+  ML_EIC_CLR_INTFLAG(1);
+  tendons[6].encoder_ISR();
+}
+void EIC_0_Handler(void)
+{
+  ML_EIC_CLR_INTFLAG(0);
+  tendons[6].encoder_ISR();
+}
+
+
+/*
+ * 
+ * M7:
+ *      enca: A11 --> PC02 --> EXTINT[2]
+ *      encb: A5 --> PC08 --> EXTINT[8]
+ */
+void EIC_2_Handler(void)
+{
+  ML_EIC_CLR_INTFLAG(2);
+  tendons[2].encoder_ISR();
+}
+
+void EIC_8_Handler(void)
+{
+  ML_EIC_CLR_INTFLAG(8);
+  tendons[8].encoder_ISR();
+}
+
+// // M6
+// void EIC_2_Handler(void)
+// {
+//   EIC_CLR_INTFLAG(1);
+//   tendons[6].encoder_ISR();
+// }
+// void EIC_8_Handler(void)
+// {
+//   EIC_CLR_INTFLAG(0);
+//   tendons[6].encoder_ISR();
+// }
