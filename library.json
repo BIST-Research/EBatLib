@@ -1,0 +1,27 @@
+{
+  "name": "neec_batlib",
+  "version": "1.0.0",
+  "description": "Atmel SAM library used for embedded solutions pertaining to the BIST lab.",
+  "keywords": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BIST-Research/EBatLib.git"
+  },
+  "authors": [
+    {
+      "name": "Ben Westcott"
+    },
+    {
+      "name": "Jayson De La Vega",
+      "email": "jaysond21@vt.edu",
+      "maintainer": true
+    },
+    {
+      "name": "Kofi Ofosu-Tuffour"
+    }
+  ],
+  "license": "MIT",
+  "dependencies": {},
+  "frameworks": "arduino",
+  "platforms": "atmelsam"
+}
