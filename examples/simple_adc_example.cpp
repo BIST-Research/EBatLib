@@ -4,23 +4,24 @@
  */
 
 #include <Arduino.h>
-#include <ml_clocks.h>
-#include <ml_adc_common.h>
-#include <ml_adc0.h>
-#include <ml_port.h>
+#include <adc/ml_adc0.h>
+#include <adc/ml_adc_common.h>
+#include <clocks/ml_clocks.h>
+#include <port/ml_port.h>
 
 // A2 on ItsyBitsy
 // A11 on GrandCentral
-const ml_pin_settings adc_pin = {PORT_GRP_B, 8, PF_B, PP_EVEN, ANALOG, DRIVE_OFF};
+const ml_pin_settings adc_pin = {PORT_GRP_B, 8,      PF_B,
+                                 PP_EVEN,    ANALOG, DRIVE_OFF};
 
-void setup(void)
-{
+void setup(void) {
   MCLK_init();
   GCLK_init();
 
   Serial.begin(115200);
-  while(!Serial);
-  
+  while (!Serial)
+    ;
+
   ADC0_init();
   peripheral_port_init(&adc_pin);
 
@@ -29,18 +30,14 @@ void setup(void)
 
   // RESRDY: result ready
   ADC0->INTENSET.bit.RESRDY = true;
-
 }
 
 uint16_t result = 0;
 
-void loop(void)
-{
-  if(ADC0->INTFLAG.bit.RESRDY == true)
-  {
+void loop(void) {
+  if (ADC0->INTFLAG.bit.RESRDY == true) {
     // reading RESULT clears RESRDY flag (pp. 1630)
     result = (uint16_t)ADC0->RESULT.reg;
     Serial.println(result);
-  }  
+  }
 }
-
