@@ -1,5 +1,4 @@
 #include <ac/ml_ac.h>
-#include <adc/ml_adc.h>
 #include <clocks/ml_clocks.h>
 #include <dac/ml_dac0.h>
 #include <dmac/ml_dmac.h>
