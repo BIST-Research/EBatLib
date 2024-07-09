@@ -7,18 +7,17 @@
 #define ML_SERCOM_1_H
 
 #include <Arduino.h>
-#include <ml_spi_common.h>
-#include <ml_port.h>
+#include <port/ml_port.h>
+#include <sercom/ml_spi_common.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 void sercom1_spi_init(const ml_spi_opmode_t opmode);
 
-//void spi_port_init(void);
+// void spi_port_init(void);
 
 const extern ml_spi_s sercom1_spi_dmac_master_prototype;
 const extern ml_spi_s sercom1_spi_dmac_slave_prototype;
