@@ -1,6 +1,8 @@
-/*
- * Author: Ben Westcott
- * Date created: 8/25/23
+/**
+ * @file
+ *
+ * @author Ben Westcott
+ * @date 8/25/23
  */
 
 #ifndef ML_DAC0_H
@@ -13,27 +15,116 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Initializes DAC0
+ */
 void DAC0_init(void);
+
+/**
+ * @brief Enables DAC0
+ *
+ * @return IDK man
+ */
 int8_t DAC0_enable(void);
+
+/**
+ * @brief Disables DAC0
+ *
+ * @return IDK man
+ */
 int8_t DAC0_disable(void);
 
+/**
+ * @brief Sets DAC0 oversampling ratio
+ *
+ * @param value oversampling ratio
+ * @return IDK man
+ */
 int8_t DAC0_set_oversampling_ratio(const ml_dac_osr_t value);
+
+/**
+ * @brief Sets DAC0 refresh period
+ *
+ * @param period in microseconds
+ * @return IDK man
+ */
 int8_t DAC0_set_refresh_period(const uint8_t period_us);
 
+/**
+ * @brief Enables DAC0 runstdby
+ *
+ * @return IDK man
+ */
 int8_t DAC0_runstdby_enable(void);
+
+/**
+ * @brief Disables DAC0 runstdby
+ *
+ * @return IDK man
+ */
 int8_t DAC0_runstdby_disable(void);
 
+/**
+ * @brief Disables DAC0 extfilt
+ *
+ * @return IDK man
+ */
 int8_t DAC0_extfilt_enable(void);
+
+/**
+ * @brief Disables DAC0 extfilt
+ *
+ * @return IDK man
+ */
 int8_t DAC0_extfilt_disable(void);
 
+/**
+ * @brief Enables DAC0 dither
+ *
+ * @return IDK man
+ */
 int8_t DAC0_dither_enable(void);
+
+/**
+ * @brief Disables DAC0 dither
+ *
+ * @return IDK man
+ */
 int8_t DAC0_dither_disable(void);
 
+/**
+ * @brief Sets DAC0 left adj
+ *
+ * @return IDK man
+ */
 int8_t DAC0_set_leftadj(void);
+
+/**
+ * @brief Sets DAC0 right adj
+ *
+ * @return IDK man
+ */
 int8_t DAC0_set_rightadj(void);
 
+/**
+ * @brief Writes DAC0
+ *
+ * @param value something
+ */
 void DAC0_write(const uint16_t value);
+
+/**
+ * @brief Write to DAC0 buffer
+ *
+ * @param value something
+ */
 void DAC0_buffer_write(const uint16_t value);
+
+/**
+ * @brief Gets DAC0 interpolated result
+ *
+ * @return IDK man
+ */
 uint16_t DAC0_get_interpol_result(void);
 
 #define ML_DAC0_GET_READY_STATUS() (DAC->STATUS.bit.READY0)

@@ -1,6 +1,8 @@
-/*
- * Author: Ben Westcott, Jayson De La Vega
- * Date created: 8/11/23
+/**
+ * @file
+ *
+ * @author Ben Westcott, Jayson De La Vega
+ * @date 8/11/23
  */
 
 #ifndef ML_SERCOM_H
@@ -9,8 +11,7 @@
 #include <Arduino.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 typedef uint8_t baudrate_short_t;

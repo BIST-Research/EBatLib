@@ -155,7 +155,7 @@ const uint16_t dac1_dmac_descriptor_settings =
     (DMAC_BTCTRL_VALID | DMAC_BTCTRL_BLOCKACT_BOTH |
      DMAC_BTCTRL_BEATSIZE_HWORD | DMAC_BTCTRL_SRCINC);
 
-const ml_dmac_s dac0_dmac_prototype = {
+const ml_dmac_s dac1_dmac_prototype = {
     .chan_prilvl = PRILVL0,
     .ex_chnum = DMAC_CH3,
     .irqn = DMAC_3_IRQn,

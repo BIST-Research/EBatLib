@@ -1,0 +1,10 @@
+/**
+ * @mainpage
+ *
+ * Welcome to the EBatLib documentation!
+ *
+ * This page contains the documentation for the EBatLib library, a library written for the ATMELSAM microcontroller for embedded solutions used within the BIST lab.
+ * The source code for this library, can be found here: https://github.com/BIST-Research/EBatLib.
+ *
+ * Additional microcontroller documentation can be found here: https://ww1.microchip.com/downloads/en/DeviceDoc/SAM_D5xE5x_Family_Data_Sheet_DS60001507F.pdf
+ */

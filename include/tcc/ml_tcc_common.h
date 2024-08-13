@@ -1,6 +1,8 @@
-/*
- * Author: Ben Westcott
- * Date created: 3/8/23
+/**
+ * @file
+ *
+ * @author Ben Westcott
+ * @date 3/8/23
  */
 
 #ifndef ML_TCC_COMMON_H
@@ -9,8 +11,7 @@
 #include <Arduino.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #define ML_TCC0_CH0 0x0
@@ -34,16 +35,20 @@ extern "C"
 #define TCC_SWRST(instance) (instance->CTRLA.reg |= TCC_CTRLA_SWRST)
 
 // REQUIRES R/W SYNC
-#define TCC_SET_ONESHOT(instance) (instance->CTRLBSET.reg |= TCC_CTRLBSET_ONESHOT)
+#define TCC_SET_ONESHOT(instance)                                              \
+  (instance->CTRLBSET.reg |= TCC_CTRLBSET_ONESHOT)
 
 // REQUIRES R/W SYNC
-#define TCC_CLR_ONESHOT(instance) (instance->CTRLBCLR.reg |= TCC_CTRLBCLR_ONESHOT)
+#define TCC_CLR_ONESHOT(instance)                                              \
+  (instance->CTRLBCLR.reg |= TCC_CTRLBCLR_ONESHOT)
 
 // REQUIRES R/W SYNC
-#define TCC_FORCE_STOP(instance) (instance->CTRLBSET.reg |= TCC_CTRLBSET_CMD_STOP)
+#define TCC_FORCE_STOP(instance)                                               \
+  (instance->CTRLBSET.reg |= TCC_CTRLBSET_CMD_STOP)
 
 // REQUIRES R/W SYNC
-#define TCC_FORCE_RETRIGGER(instance) (instance->CTRLBSET.reg |= TCC_CTRLBSET_CMD_RETRIGGER)
+#define TCC_FORCE_RETRIGGER(instance)                                          \
+  (instance->CTRLBSET.reg |= TCC_CTRLBSET_CMD_RETRIGGER)
 
 #define TCC_IS_OVF(instance) (instance->INTFLAG.bit.OVF)
 
@@ -73,9 +78,11 @@ void TCC_lock_update(Tcc *instance);
 
 void TCC_unlock_update(Tcc *instance);
 
-void TCC_channel_capture_compare_set(Tcc *instance, const uint8_t channel, const uint8_t value);
+void TCC_channel_capture_compare_set(Tcc *instance, const uint8_t channel,
+                                     const uint8_t value);
 
-void TCC_intenset(Tcc *instance, const IRQn_Type IRQn, const uint8_t interrupt_mask, const uint32_t priority_level);
+void TCC_intenset(Tcc *instance, const IRQn_Type IRQn,
+                  const uint8_t interrupt_mask, const uint32_t priority_level);
 
 void TCC_update_prescaler(Tcc *instance, uint8_t prescaler);
 
