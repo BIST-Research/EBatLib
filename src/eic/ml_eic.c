@@ -8,8 +8,8 @@
 #define EIC_CHANNELS_PER_REG 7
 
 void eic_init(uint8_t debounce) {
-  EIC_disable();
-  EIC_swrst();
+  eic_disable();
+  eic_swrst();
 
   // CLK_ULP32K = 0x1, else GCLK
   EIC->CTRLA.reg |= EIC_CTRLA_CKSEL;
