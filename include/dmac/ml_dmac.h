@@ -96,6 +96,10 @@ typedef struct _ml_dmac_s {
 #define ML_DMAC_CHANNEL_SUSPEND(channel)                                       \
   (DMAC->Channel[channel].CHCTRLB.reg |= DMAC_CHCTRLB_CMD_SUSPEND)
 
+#define ML_DMAC_INTMASK_TERR  (0x1 << 0)
+#define ML_DMAC_INTMASK_TCMPL (0x1 << 1)
+#define ML_DMAC_INTMASK_SUSP  (0x1 << 2)
+
 #define ML_DMAC_CHANNEL_INTSET_TCMPL(channel)                                  \
   (DMAC->Channel[channel].CHINTENSET.bit.TCMPL = 0x01)
 #define ML_DMAC_CHANNEL_INTSET_SUSP(channel)                                   \
@@ -104,11 +108,11 @@ typedef struct _ml_dmac_s {
   (DMAC->Channel[channel].CHINTENSET.bit.TERR = 0x01)
 
 #define ML_DMAC_CHANNEL_CLR_TCMPL_INTFLAG(channel)                             \
-  (DMAC->Channel[channel].CHINTFLAG.bit.TCMPL = 0x01)
+  (DMAC->Channel[channel].CHINTFLAG.reg |= ML_DMAC_INTMASK_TCMPL)
 #define ML_DMAC_CHANNEL_CLR_SUSP_INTFLAG(channel)                              \
-  (DMAC->Channel[channel].CHINTFLAG.bit.SUSP = 0x01)
+  (DMAC->Channel[channel].CHINTFLAG.reg |= ML_DMAC_INTMASK_SUSP)
 #define ML_DMAC_CHANNEL_CLR_TERR_INTFLAG(channel)                              \
-  (DMAC->Channel[channel].CHINTFLAG.bit.TERR = 0x01)
+  (DMAC->Channel[channel].CHINTFLAG.reg |= ML_DMAC_INTMASK_TERR)
 
 #define ML_DMAC_CHANNEL_TCMPL_INTFLAG(channel)                                 \
   (DMAC->Channel[channel].CHINTFLAG.bit.TCMPL == 0x01)

@@ -58,8 +58,10 @@ void rise_edge_int_init(void);
   (EIC->DEBOUNCEN.reg |= (1 << EIC_DEBOUNCEN_DEBOUNCEN(channel)))
 #define ML_EIC_INTSET(channel)                                                 \
   (EIC->INTENSET.reg |= (1 << EIC_INTENSET_EXTINT(channel)))
+/* 
 #define ML_EIC_CLR_INTFLAG(channel)                                            \
-  (EIC->INTFLAG.reg |= (1 << EIC_INTFLAG_EXTINT(channel)))
+   (EIC->INTFLAG.reg |= (1 << EIC_INTFLAG_EXTINT(channel)))
+*/
 
 #ifdef __cplusplus
 }

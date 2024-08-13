@@ -17,7 +17,7 @@ void eic_init(uint8_t debounce) {
   if (debounce) {
     EIC->DPRESCALER.bit.TICKON = 0x01;
 
-    _Bool db0, db1;
+    // _Bool db0, db1;
     if (debounce & 0b01) {
       // debounce sample for 50ms? Seems reasonable ig
       // F//128 ==> 0x06
