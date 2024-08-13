@@ -1,6 +1,8 @@
-/*
- * Author: Ben Westcott
- * Date created: 12/20/23
+/**
+ * @file
+ *
+ * @author Ben Westcott
+ * @date 12/20/23
  */
 
 // Currently just holds the setup function for sonar mics
@@ -11,10 +13,12 @@
 #include <Arduino.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
+/**
+ * @brief Initialize ADC0
+ */
 void ADC0_init(void);
 
 #ifdef __cplusplus

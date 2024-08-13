@@ -1,6 +1,8 @@
-/*
- * Author: Ben Westcott
- * Date created: 8/25/23
+/**
+ * @file
+ *
+ * @author Ben Westcott
+ * @date 8/25/23
  */
 
 #ifndef ML_DAC1_H

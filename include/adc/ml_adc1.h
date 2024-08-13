@@ -1,9 +1,9 @@
-/*
- * Author: Ben Westcott
- * Date created: 12/20/23
+/**
+ * @file ml_adc1.h
+ *
+ * @author Ben Westcott
+ * @date 12/20/23
  */
-
-// Currently just holds the setup function for sonar mics
 
 #ifndef ML_ADC1_H
 #define ML_ADC1_H
@@ -11,10 +11,12 @@
 #include <Arduino.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
+/**
+ * @brief Initializes ADC1
+ */
 void ADC1_init(void);
 
 #ifdef __cplusplus

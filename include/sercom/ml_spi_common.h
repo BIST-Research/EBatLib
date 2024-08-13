@@ -1,6 +1,8 @@
-/*
- * Author: Ben Westcott, Jayson De La Vega
- * Date created: 8/11/23
+/**
+ * @file
+ *
+ * @author Ben Westcott, Jayson De La Vega
+ * @date 8/11/23
  */
 
 #ifndef ML_SERCOM_SPI_H
